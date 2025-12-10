@@ -6,17 +6,49 @@
     <style> body { font-family: Arial; max-width: 800px; margin: 0 auto; padding: 20px; } ul { list-style: none; } li { margin: 10px 0; } </style>
 </head>
 <body>
-    <h1>Interactive Web Demos from Simple Simulation Engine</h1>
-    <p>Ports of C++/Python sims to JS/WebGL/Three.js. Click to launch!</p>
+    <h1>Physics &amp; Chemistry Web Demos</h1>
+    <p>Stripped-down browser ports of my C++/Python codes using JavaScript/WebGL. Click a link to launch a demo.</p>
+
+    <h2>1. AFM / STM Imaging &amp; Pauli Master Equation</h2>
     <ul>
-        <!-- <li><a href="js/mhd_demo/">MHD Demo (Magnetohydrodynamics Sim)</a> - Fluid dynamics with fields.</li> -->
-        <!-- <li><a href="js/GLSL_solid_modeling/">GLSL Solid Modeling</a> - Raytracing & primitives.</li> -->
-        <!-- <li><a href="js/PlanetDesigner/">Planet Designer</a> - Procedural planets & turbulence.</li> -->
-        <!-- <li><a href="js/molgui_web/">MolGUI Web</a> - Molecule editor.</li> -->
-        <li><a href="js/OBJ_Loader/">OBJ Loader</a> - 3D model viewer.</li>
-        <!-- <li><a href="js/spacecraft_editor/">Spacecraft Editor</a> - Build & render ships.</li> -->
-        <!-- Add more as you go -->
+        <li><a href="ppafm_web/">ppafm_web</a> – Probe-Particle AFM imaging demo (frequency-shift contrast for functionalized tips).</li>
+        <!-- <li><a href="ppafm_web_inline/">ppafm_web_inline</a> – Inline/embedded variant of the PPAFM imaging demo.</li> -->
+        <li><a href="ppstm_web/">ppstm_web</a> – High-resolution STM / IETS demo with flexible tips and Chen-style tunneling.</li>
+        <li><a href="pauli_web/">pauli_web</a> – Pauli master-equation dI/dV demo for transport in molecular assemblies.</li>
     </ul>
-    <p><a href="https://github.com/ProkopHapala/SimpleSimulationEngine">View Source on GitHub</a></p>
+
+    <h2>2. Molecular Modeling &amp; Engineering</h2>
+    <ul>
+        <li><a href="molgui_web/">molgui_web</a> – Web-based molecular editor and viewer for on-surface and force-field studies.</li>
+    </ul>
+
+    <h2>3. Space-Warfare Game &amp; Physics Sandbox</h2>
+    <ul>
+        <li><a href="mhd_demo/">mhd_demo</a> – Simple magnetohydrodynamics (MHD) fluid/plasma solver demo.</li>
+        <li><a href="spacecraft_editor/">spacecraft_editor</a> – Spacecraft design and visualization playground (hulls, trusses, engines).</li>
+        <li><a href="OBJ_Loader/">OBJ_Loader</a> – Minimal OBJ 3D model viewer for quick inspection of meshes.</li>
+    </ul>
+
+    <p>
+        Source code and full simulation engines:
+        <a href="https://github.com/ProkopHapala/web_physics">web_physics</a>,
+        <a href="https://github.com/Probe-Particle/ppafm">PPAFM</a>,
+        <a href="https://github.com/Probe-Particle/PPSTM">PPSTM</a>,
+        <a href="https://github.com/ProkopHapala/FireCore">FireCore</a>,
+        <a href="https://github.com/ProkopHapala/SimpleSimulationEngine">SimpleSimulationEngine</a>.
+    </p>
+
+    <h2>About the author</h2>
+    <p>
+        These demos are created by <strong>Prokop Hapala</strong>, a computational physicist at the
+        <a href="https://www.fzu.cz/en/home">Institute of Physics of the Czech Academy of Sciences (FZU)</a> in Prague.
+        His research focuses on high-resolution scanning probe microscopy, on-surface chemistry,
+        and computer-aided design of molecular assemblies.
+    </p>
+    <p>
+        Profiles:
+        ORCID: <a href="https://orcid.org/0000-0003-4807-0326">0000-0003-4807-0326</a>,
+        GitHub: <a href="https://github.com/ProkopHapala">github.com/ProkopHapala</a>.
+    </p>
 </body>
 </html>

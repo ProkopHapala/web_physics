@@ -80,6 +80,20 @@
             <div class="row"><canvas id="cpu2DCanvas" style="width:100%; height:180px; border:1px solid #333;"></canvas></div>
             <div class="row"><label for="inpVerbosity">verbosity</label> <input id="inpVerbosity" type="number" min="0" step="1" value="0" style="width:70px" /></div>
         </div>
+
+        <div class="row" style="margin-top:8px; padding-top:6px; border-top:1px solid #333; font-size:10px; line-height:1.3; color:#aaa;">
+            <strong>Usage &amp; physics</strong><br/>
+            This WebGL tool visualizes transport through a small set of sites using a Pauli master equation (PME) solver, showing tip current, charge and occupancy maps over bias and position.<br/>
+            <strong>Project:</strong>
+            Prototype for PME modelling in molecular assemblies and STM junctions.<br/>
+            <strong>References:</strong><br/>
+            Li, C. et al., <em>"Negative differential conductance in triangular molecular assemblies"</em>, arXiv:2508.05575 (2025).
+            <a href="https://doi.org/10.48550/arXiv.2508.05575" target="_blank" rel="noopener">doi:10.48550/arXiv.2508.05575</a>.<br/>
+            Kir61ansk05s, G. et al., <em>"QmeQ 1.0: An open-source Python package for calculations of transport through quantum dot devices"</em>,
+            Comput. Phys. Commun. 221, 317d342 (2017).
+            <a href="https://doi.org/10.1016/j.cpc.2017.07.024" target="_blank" rel="noopener">doi:10.1016/j.cpc.2017.07.024</a>.<br/>
+            Code: <a href="https://github.com/gedaskir/qmeq" target="_blank" rel="noopener">github.com/gedaskir/qmeq</a>.
+        </div>
     </div>
     <div id="ui">
         <div id="paramPanel"></div>
@@ -141,6 +155,10 @@
         <div class="row" id="status"></div>
         <div class="row" style="font-size: 0.8em; color: #aaa;">
             Phase 1: gradient + visualization of site positions/energies. No PME physics yet.
+        </div>
+        <div class="row" style="font-size: 0.8em; color: #aaa;">
+            <strong>Usage &amp; references:</strong><br/>
+            Pauli master-equation transport demo. See <a href="https://arxiv.org/abs/2508.05575" target="_blank" rel="noopener">Li et al. (2025)</a> and <a href="https://github.com/gedaskir/qmeq" target="_blank" rel="noopener">QmeQ</a>.
         </div>
     </div>
 

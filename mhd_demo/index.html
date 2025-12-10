@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>MHD Plasma Nozzle Demo</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <div id="side-panel">
+        <div class="header">
+            <h2>MHD Nozzle</h2>
+            <div class="tabs">
+                <button id="tab-settings" class="tab-btn active">Settings</button>
+                <button id="tab-editor" class="tab-btn">Editor</button>
+            </div>
+        </div>
+
+        <div id="panel-settings">
+            <div class="section">
+                <h3>State</h3>
+                <div class="control-row">
+                    <button id="btn-state0" class="active">t=0 (Initial)</button>
+                    <button id="btn-state1">t=1 (Final)</button>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>Solver</h3>
+                <div class="control-row">
+                    <label>Method</label>
+                    <select id="solver-method">
+                        <option value="flux" selected>Flux Conservation (Matrix)</option>
+                        <option value="control-points">Control Points (Fit)</option>
+                    </select>
+                </div>
+                <div class="control-row">
+                    <label>Verbosity</label>
+                    <select id="verbosity">
+                        <option value="0">0 (None)</option>
+                        <option value="1" selected>1 (Basic)</option>
+                        <option value="2">2 (Detailed)</option>
+                    </select>
+                </div>
+                <div class="control-row">
+                    <button id="btn-solve" class="primary">Solve Currents</button>
+                    <button id="btn-reset">Reset</button>
+                </div>
+                <div class="control-row">
+                    <label>Auto-update</label>
+                    <input type="checkbox" id="chk-auto-solve" checked>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>Superconductor (SC)</h3>
+                <div class="control-row"><label>R</label><input type="number" id="sc-radius" value="0.3" step="0.1">
+                </div>
+                <div class="control-row"><label>Z</label><input type="number" id="sc-z" value="0.3" step="0.1"></div>
+                <div class="control-row"><label>Current (A)</label><input type="number" id="sc-current" value="1000000"
+                        step="100000"></div>
+            </div>
+
+            <div class="section">
+                <h3>Parabolic Cage</h3>
+                <div class="control-row"><label>Count</label><input type="number" id="cage-count" value="5" step="1">
+                </div>
+                <div class="control-row"><label>R Throat</label><input type="number" id="cage-r-min" value="0.2"
+                        step="0.1"></div>
+                <div class="control-row"><label>R Exit</label><input type="number" id="cage-r-max" value="2.0"
+                        step="0.1"></div>
+                <div class="control-row"><label>Z Start</label><input type="number" id="cage-z-start" value="0.5"
+                        step="0.1"></div>
+                <div class="control-row"><label>Z End</label><input type="number" id="cage-z-end" value="1.8"
+                        step="0.1"></div>
+            </div>
+
+            <div class="section">
+                <h3>Plasma</h3>
+                <div class="control-row"><label>Count</label><input type="number" id="plasma-count" value="1" step="1">
+                </div>
+                <div class="control-row"><label>Z (t0=t1)</label><input type="number" id="plasma-z0" value="1.0"
+                        step="0.1"></div>
+                <div class="control-row"><label>R Start (t0)</label><input type="number" id="plasma-r0" value="0.01"
+                        step="0.01"></div>
+                <div class="control-row"><label>R End (t1)</label><input type="number" id="plasma-r1" value="1.0"
+                        step="0.1"></div>
+            </div>
+
+            <div class="section">
+                <h3>Trajectory</h3>
+                <div class="control-row">
+                    <label for="traj-mode">Mode</label>
+                    <select id="traj-mode">
+                        <option value="interp" selected>Interpolated (t0 → t1)</option>
+                        <option value="dynamic">Dynamic (simulate)</option>
+                    </select>
+                </div>
+                <div class="control-row">
+                    <label>t = <span id="t-value">0.00</span></label>
+                    <input type="range" id="t-slider" min="0" max="1" step="0.01" value="0" style="width:100%">
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>Visualization</h3>
+                <div class="control-row">
+                    <label>Vector Field</label>
+                    <input type="checkbox" id="chk-field" checked>
+                </div>
+                <div class="control-row">
+                    <label>GLSL Shader</label>
+                    <input type="checkbox" id="chk-shader">
+                </div>
+                <div class="control-row">
+                    <label>Control Points</label>
+                    <input type="checkbox" id="chk-control-pts">
+                </div>
+                <div class="control-row">
+                    <label>Rings / Profile</label>
+                    <input type="checkbox" id="chk-rings" checked>
+                </div>
+                <div class="control-row">
+                    <label>Field Scale</label>
+                    <input type="number" id="field-scale" value="1.0" step="0.1">
+                </div>
+                <div class="control-row">
+                    <label>B Saturation</label>
+                    <input type="number" id="b-max" value="0.1" step="0.01">
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>Energy</h3>
+                <canvas id="energy-plot" width="200" height="100"
+                    style="width:100%;background:#111;border-radius:4px;"></canvas>
+            </div>
+
+            <div id="log"></div>
+        </div>
+
+        <div id="panel-editor" style="display:none;">
+            <div class="section">
+                <h3>Coils t=0 (Initial)</h3>
+                <p class="small">TYPE R0 Z0 R1 Z1 I0</p>
+                <textarea id="config-text-t0" rows="10" spellcheck="false"></textarea>
+            </div>
+            <div class="section">
+                <h3>Coils t=1 (State 1)</h3>
+                <p class="small">Target for Flux/Motion</p>
+                <textarea id="config-text-t1" rows="10" spellcheck="false"></textarea>
+            </div>
+            <div class="control-row">
+                <button id="btn-gen-config">Generate from Settings</button>
+                <button id="btn-load-config" class="primary">Load to Sim</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <div style="position:fixed; bottom:8px; left:8px; max-width:340px; font-size:10px; line-height:1.3; color:#ccc; background:rgba(0,0,0,0.7); padding:6px; border-radius:4px;">
+        <strong>Usage &amp; links</strong><br/>
+        This demo solves a simplified magnetohydrodynamic (MHD) nozzle problem: coil currents shape
+        the magnetic field and plasma radius along the axis, using flux conservation and geometric
+        control points.<br/>
+        Code basis: utilities and concepts from the
+        <a href="https://github.com/ProkopHapala/SimpleSimulationEngine" target="_blank" rel="noopener">SimpleSimulationEngine</a>
+        project and its space-warfare / plasma notes
+        (<a href="https://github.com/ProkopHapala/SimpleSimulationEngine/tree/master/encyclopedia/space_warfare" target="_blank" rel="noopener">space_warfare</a>).
+    </div>
+
+    <script type="module" src="main.js"></script>
+</body>
+
+</html>

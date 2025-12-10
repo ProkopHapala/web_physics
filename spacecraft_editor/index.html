@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spacecraft Editor WebGL</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Three.js (r128) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/TransformControls.js"></script>
+</head>
+
+<body>
+    <div id="canvas-container"></div>
+    <div id="gui-resizer"></div>
+    <div id="side-panel">
+        <div class="panel-section">
+            <h3>View</h3>
+            
+            <!-- Camera Mode -->
+            <div class="compact-row">
+                <span class="compact-label">Cam:</span>
+                <select id="selCameraMode" class="compact-select">
+                    <option value="persp">Perspective</option>
+                    <option value="ortho" selected>Orthographic</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label><input type="checkbox" id="chkShowGrid"        > Show Grid</label>
+                <label><input type="checkbox" id="chkShowAxis" checked> Show Axis</label>
+            </div>
+            <!-- Zoom & Presets -->
+            <div class="compact-row">
+                <span class="compact-label">Zoom:</span>
+                <input type="number" id="zoomInput" value="1.0" step="0.1" class="compact-input" style="width: 40px;">
+                <button id="btnViewXY" class="small-btn">XY</button>
+                <button id="btnViewXZ" class="small-btn">XZ</button>
+                <button id="btnViewYZ" class="small-btn">YZ</button>
+            </div>
+
+            <!-- Labels -->
+            <div class="compact-row" style="margin-top: 4px;">
+                <span class="compact-label">Labels:</span>
+                <select id="selLabelMode" class="compact-select">
+                    <option value="none">None</option>
+                    <option value="id" selected>Node ID</option>
+                </select>
+            </div>
+            <div class="compact-row">
+                <span class="compact-label">Color:</span>
+                <input type="color" id="colLabel" value="#00ff00" class="color-input">
+                <span class="compact-label">Size:</span>
+                <input type="number" id="numLabelSize" value="0.04" step="0.01" class="compact-input" style="width: 40px;">
+                <label class="compact-label" style="margin-left: 2px;"><input type="checkbox" checked id="chkLabelFixed">FixScale</label>
+            </div>
+
+            <!-- Render Layers & Sizes (compact) -->
+            <div class="compact-row" style="margin-top: 2px;">
+                <span class="compact-label">Layers:</span>
+                <label class="compact-label"><input type="checkbox" id="chkRenderVerts" checked>V</label>
+                <label class="compact-label"><input type="checkbox" id="chkRenderEdges" checked>E</label>
+                <label class="compact-label"><input type="checkbox" id="chkRenderLabels"       >L</label>
+                <label class="compact-label"><input type="checkbox" id="chkRenderSelection" checked>S</label>
+            </div>
+            <div class="compact-row">
+                <span class="compact-label">PtSize:</span>
+                <input type="number" id="numVertSize" value="0.20" step="0.02" class="compact-input" style="width: 40px;">
+                <span class="compact-label">Sel:</span>
+                <input type="number" id="numSelSize" value="0.30" step="0.02" class="compact-input" style="width: 40px;">
+            </div>
+        </div>
+
+        <!-- Mesh Generator Panel -->
+        <div class="panel-section">
+            <h3>Mesh Generator</h3>
+            <div id="mesh-gen-panel"></div>
+        </div>
+
+        <!-- Selection Panel -->
+        <div class="panel-section">
+            <h3>Selection</h3>
+            <div class="compact-row">
+                <span class="compact-label">Bank:</span>
+                <select id="selSelectionBank" class="compact-select">
+                    <option value="0">0</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                </select>
+                <button id="btnSelSave" class="small-btn">Save</button>
+                <button id="btnSelDelete" class="small-btn">Clear</button>
+            </div>
+            <div class="compact-row">
+                <span class="compact-label">Mode:</span>
+                <select id="selSelectionKind" class="compact-select">
+                    <option value="vert">Verts</option>
+                    <option value="edge">Edges</option>
+                </select>
+                <label class="compact-label" style="margin-left: 4px;"><input type="checkbox" id="chkSelectionAdditive">Add</label>
+                <span class="compact-label" style="margin-left: 4px;">N:</span>
+                <span id="lblSelectionCount" class="compact-label">0</span>
+            </div>
+            <div class="compact-row">
+                <input type="text" id="txtSelectionIndices" class="compact-input" style="width: 100%;" placeholder="Selected IDs (e.g. 0,1,5)">
+            </div>
+        </div>
+
+        <!-- Test Panel -->
+
+            <h3>Tests</h3>
+            
+            <div class="compact-row">
+                 <span class="compact-label">Verbosity:</span>
+                <span class="compact-label">Log</span>
+                <input type="number" id="numVerbosityUI" value="3" min="0" max="5" class="compact-input" style="width: 30px;">
+                <span class="compact-label">Con</span>
+                <input type="number" id="numVerbosityCon" value="3" min="0" max="5" class="compact-input" style="width: 30px;">  
+            </div>
+            <div class="control-group">
+                <label><input type="checkbox" id="chkAutoClear" checked> Auto Clear</label>
+            </div>
+            <div class="control-group">
+                <select id="selTest">
+                </select>
+                <button id="btnRunTest">Run Test</button>
+            </div>
+
+            <div class="compact-row">
+                <button id="btnScanDupVerts" class="small-btn">Scan Dup Verts</button>
+                <button id="btnScanDupEdges" class="small-btn">Scan Dup Edges</button>
+            </div>
+
+            <h3>Topology</h3>
+            <div class="compact-row">
+                <span class="compact-label">Verts:</span>
+                <label class="compact-label"><input type="checkbox" id="chkTopoCheckVerts">Check</label>
+                <label class="compact-label"><input type="checkbox" id="chkTopoVertError" checked>Error</label>
+                <label class="compact-label"><input type="checkbox" id="chkTopoVertSkip" checked>Skip</label>
+            </div>
+            <div class="compact-row">
+                <span class="compact-label">Rcoll:</span>
+                <input type="number" id="numRvertCollapse" value="0.001" step="0.0001" class="compact-input" style="width: 70px;">
+            </div>
+            <div class="compact-row">
+                <span class="compact-label">Edges:</span>
+                <label class="compact-label"><input type="checkbox" id="chkTopoCheckEdges">Check</label>
+                <label class="compact-label"><input type="checkbox" id="chkTopoEdgeError" checked>Error</label>
+                <label class="compact-label"><input type="checkbox" id="chkTopoEdgeSkip" checked>Skip</label>
+            </div>
+
+
+        <div class="panel-section">
+            <h3>Scripting</h3>
+            <div class="control-row">
+                <button id="load-script-btn">Load Script...</button>
+                <input type="file" id="script-file-input" style="display: none;" accept=".js,.txt">
+            </div>
+            <textarea id="script-input" spellcheck="false">
+// Test Script
+api.Material("Steel", 7800, 100, 100);
+var n1 = api.Node(vec(0,0,0));
+var n2 = api.Node(vec(2,0,0));
+api.Girder(n1, n2, "Steel");
+            </textarea>
+            <button id="run-script-btn">Run Script</button>
+        </div>
+
+        <!-- Log -->
+        <div class="panel-section" style="flex-grow: 1; display: flex; flex-direction: column; min-height: 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>Log</h3>
+                <button id="btnClearLog" style="padding: 2px 5px; font-size: 0.8em;">Clear</button>
+            </div>
+            <div id="log" class="log-box"
+                style="flex-grow: 1; overflow: auto; background: #111; padding: 5px; border: 1px solid #444; font-family: monospace; font-size: 0.9em;">
+            </div>
+        </div>
+
+        <div class="panel-section" style="font-size:10px; line-height:1.3; color:#ccc; border-top:1px solid #333; margin-top:4px; padding-top:4px;">
+            <strong>Usage &amp; links</strong><br/>
+            This editor is a web front-end for parametric spacecraft and truss design, sharing
+            concepts and mesh generators with the C++
+            <a href="https://github.com/ProkopHapala/SimpleSimulationEngine" target="_blank" rel="noopener">SimpleSimulationEngine</a>.
+            See the <a href="https://github.com/ProkopHapala/SimpleSimulationEngine/wiki/OrbitalWar" target="_blank" rel="noopener">OrbitalWar</a>
+            wiki and <a href="https://github.com/ProkopHapala/SimpleSimulationEngine/tree/master/encyclopedia/space_warfare" target="_blank" rel="noopener">space_warfare</a>
+            notes for the underlying space-combat and engineering concepts.
+        </div>
+
+        <!-- ES module entrypoint -->
+        <script type="module" src="js/main.js?v=2"></script>
+</body>
+
+</html>
