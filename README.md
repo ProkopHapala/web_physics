@@ -5,9 +5,9 @@ Interactive browser demos of my physics and chemistry codes, rewritten in JavaSc
 - **Live demos:** open the subfolders in a browser (or use the main `index.html` front page).
 - **Full codes:** see linked GitHub projects for production‑grade simulators and scripts.
 
-Below, the demos are grouped into three themes.
+it is hosted here: **[https://prokophapala.github.io/web_physics/](https://prokophapala.github.io/web_physics/)**
 
----
+Below, the demos are grouped into three themes.
 
 ## 1. AFM / STM Imaging and Pauli Master Equation
 
@@ -87,8 +87,12 @@ For background on the research and full‑scale codes, see `Supplement_info.md` 
 
 ## About the author
 
-This project is developed by **Prokop Hapala**, computational physicist at the [Institute of Physics of the Czech Academy of Sciences (FZU)](https://www.fzu.cz/en/home) in Prague. His work focuses on high‑resolution scanning probe microscopy, on‑surface chemistry, and computer‑aided design of molecular assemblies (CADTARSIS project).
+This project is developed by **Prokop Hapala**, computational physicist at the surface-science group of the Institute of Physics of the Czech Academy of Sciences in Prague. His work focuses on high‑resolution scanning probe microscopy, on‑surface chemistry, and computer‑aided design of molecular assemblies within the GAČR JUNIOR STAR project **CADTARSIS** (*Computer Aided Design of Templated Assembling, Replication and Synthesis on Ionic Substrates*).
 
+In CADTARSIS he develops photosensitive polymer templates that encode structural information and drive deterministic bottom‑up assembly of molecular components, aiming at scalable nanofabrication of molecular electronic and photonic devices below the resolution limits of photolithography, as described in
+"Computational Design of Photosensitive Polymer Templates To Drive Molecular Nanofabrication" (*ACS Nano* 2024, DOI [10.1021/acsnano.3c10575](https://doi.org/10.1021/acsnano.3c10575)) and on the
+[CADTARSIS project page](https://www.fzu.cz/en/research/divisions-and-departments/division-2/department-23/research/computational-design-nanofabrication-molecular-computers).
+
+- FZU profile: [Prokop Hapala](https://www.fzu.cz/en/people/ing-prokop-hapala-phd)  
 - ORCID: [0000-0003-4807-0326](https://orcid.org/0000-0003-4807-0326)  
-- Institution: [Institute of Physics of the Czech Academy of Sciences](https://www.fzu.cz/en/home)  
 - GitHub: [github.com/ProkopHapala](https://github.com/ProkopHapala)
