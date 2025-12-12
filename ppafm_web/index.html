@@ -918,6 +918,18 @@ Br 2.2200 0.013876
           if (!sel) return;
           var baseA = 'molecules/';
           var baseB = '../common_resources/molecules/';
+          var fallbackFiles = [
+            'adenine-thymine.xyz',
+            'BPBA.xyz',
+            'DBTH.xyz',
+            'formic_dimer.xyz',
+            'guanine-cytosine.xyz',
+            'pentacene.xyz',
+            'porphirin.xyz',
+            'PTCDA.xyz',
+            'pyridine.xyz',
+            'pyrrol.xyz'
+          ];
           function tryList(base1, base2) {
             return fetch(base1).then(function (r) {
               if (!r.ok) throw new Error('HTTP ' + r.status + ' for ' + base1);
@@ -946,18 +958,34 @@ Br 2.2200 0.013876
             });
             setStatus('Found ' + res.files.length + ' example molecules in ' + res.base);
           }).catch(function (e) {
-            setStatus('Cannot list example molecules (no directory listing?). ' + e);
+            sel.dataset.base = baseB;
+            while (sel.options.length > 1) sel.remove(1);
+            fallbackFiles.forEach(function (fname) {
+              var opt = document.createElement('option');
+              opt.value = fname;
+              opt.textContent = fname;
+              sel.appendChild(opt);
+            });
+            setStatus('Cannot list example molecules (no directory listing?). Using built-in list from ' + baseB + '  ' + e);
           });
         }
 
         function loadExampleMolecule(fname) {
           if (!fname) return;
           var sel = document.getElementById('selMolecule');
-          var base = (sel && sel.dataset && sel.dataset.base) ? sel.dataset.base : 'molecules/';
-          fetch(base + fname).then(function (r) {
-            if (!r.ok) throw new Error('HTTP ' + r.status + ' for ' + (base + fname));
-            return r.text();
-          }).then(function (txt) {
+          var base0 = (sel && sel.dataset && sel.dataset.base) ? sel.dataset.base : 'molecules/';
+          var bases = [base0, '../common_resources/molecules/', 'molecules/'];
+          function tryFetch(i) {
+            if (i >= bases.length) throw new Error('All bases failed for ' + fname);
+            var url = bases[i] + fname;
+            return fetch(url).then(function (r) {
+              if (!r.ok) throw new Error('HTTP ' + r.status + ' for ' + url);
+              return r.text();
+            }).catch(function () {
+              return tryFetch(i + 1);
+            });
+          }
+          tryFetch(0).then(function (txt) {
             var ta = document.getElementById('txtXYZ');
             ta.value = txt;
             applyXYZ(txt);
