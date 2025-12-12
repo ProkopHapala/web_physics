@@ -15,6 +15,15 @@ uniform vec4  uAtoms[256];   // xyz in Å, w = charge (e)
 // Potential:  E(r) = E0 * (1.0 - exp(-K*(r-R0)))^2 + Q * COULOMB_CONST / r
 uniform vec4  uREQK[256];
 
+// Tip axial multipole moments (along +z) used for electrostatics with sample atom charges
+// Units (in e, e*Å, e*Å^2):
+//   uTipQ   ... monopole charge
+//   uTipPz  ... dipole moment p_z
+//   uTipQzz ... quadrupole moment Q_zz (traceless axial convention: potential ~ (3z^2-r^2)/(2 r^5))
+uniform float uTipQ;
+uniform float uTipPz;
+uniform float uTipQzz;
+
 // Linear contrast scaling for visualization of scalar fields (used for Fz)
 uniform float uContrast;
 
@@ -32,6 +41,7 @@ uniform float uDamp;
 uniform float uF2Conv;
 uniform int   uAlgo;        // 0 = basic Euler, 1 = zero-velocity quench
 uniform int   uRenderMode;  // 0 = df, 1 = Fz, 2 = residual |F|, 3 = iter count
+uniform float uGridPeriod;  // grid/checker spacing in Å for deflection visualization
 uniform int   uOscSteps;    // number of approach/oscillation steps (<=128)
 uniform float uDz;          // step size for adiabatic approach
 uniform float uOscAmp;      // oscillation amplitude (peak offset)
@@ -66,7 +76,7 @@ vec4 getCoulomb(vec4 atom, vec3 pos) {
 vec3 getMorseCoulombForce(vec3 pos, vec3 apos, vec4 REQK) {
     float R0 = REQK.x;
     float E0 = REQK.y;
-    float Q  = REQK.z;
+    float qAtom  = REQK.z;
     float K  = REQK.w;
 
     vec3  dp = pos - apos;
@@ -76,13 +86,36 @@ vec3 getMorseCoulombForce(vec3 pos, vec3 apos, vec4 REQK) {
     float expar = exp(-K * (r - R0));
     // dEm/dr for Em = E0 * (1 - exp(-K (r-R0)))^2
     float dEm_dr = 2.0 * E0 * K * expar * (1.0 - expar);
-    // Coulomb: Ec = Q * COULOMB_CONST / r  => dEc/dr = -Q*C / r^2
-    float dEc_dr = -Q * COULOMB_CONST / r2;
-    float dE_dr  = dEm_dr + dEc_dr;
 
-    // Force is negative gradient: F = -dE/dr * (dp / r)
-    vec3 F = -dE_dr * (dp / r);
-    return F;
+    // --- Electrostatics: atom charge (qAtom) interacting with tip multipoles (uTipQ,uTipPz,uTipQzz)
+    // d = pos - apos, r = |d|
+    // Energy terms:
+    //   Em = qAtom*C * uTipQ/r
+    //   Ed = qAtom*C * uTipPz * z / r^3
+    //   Eq = qAtom*C * uTipQzz * (3 z^2 - r^2) / (2 r^5)
+    // Force on probe: F = -grad(E)
+    float ir  = 1.0 / r;
+    float ir2 = 1.0 / r2;
+    float ir3 = ir * ir2;
+    float ir5 = ir3 * ir2;
+    float ir7 = ir5 * ir2;
+
+    float kC = qAtom * COULOMB_CONST;
+    vec3 Fele = vec3(0.0);
+    // monopole
+    Fele += (kC * uTipQ) * dp * ir3;
+    // dipole (pz)
+    float zz = dp.z * dp.z;
+    Fele += (kC * uTipPz) * vec3(3.0*dp.x*dp.z, 3.0*dp.y*dp.z, 3.0*zz - r2) * ir5;
+    // quadrupole (Qzz) with axial traceless form
+    float kq = (kC * uTipQzz) * 0.5;
+    float t1 = 5.0*zz - r2;
+    Fele += (3.0 * kq) * vec3(dp.x*t1, dp.y*t1, dp.z*(5.0*zz - 3.0*r2)) * ir7;
+
+    // Total force = Morse + electrostatics
+    // Force is negative gradient: Fmorse = -dEm/dr * (dp / r)
+    vec3 Fmorse = -dEm_dr * (dp * ir);
+    return Fmorse + Fele;
 }
 
 // Convert HSV color (h in [0,1], s in [0,1], v in [0,1]) to RGB
@@ -223,6 +256,7 @@ void main() {
         pos.z    -= uDz;
     }
 
+    vec2 dxy = pos.xy - anchor.xy; // relaxed lateral deflection of probe particle
     vec3 rgb;
     if (uRenderMode == 0) {
         // df from Giessibl convolution (default)
@@ -235,6 +269,45 @@ void main() {
         // residual force norm after last relaxation step
         float res = sqrt(resF2);
         rgb = vec3(0.5 + res * uContrast);
+    } else if (uRenderMode == 4) {
+        // Probe-particle lateral deflection (HSV): hue = direction in xy, value = |dxy|
+        float ang = atan(dxy.y, dxy.x); // [-pi,pi]
+        float hue = ang * (0.5 / 3.14159265359) + 0.5;
+        float mag = length(dxy);
+        float val = clamp(mag * uContrast, 0.0, 1.0);
+        rgb = hsv2rgb(vec3(hue, 1.0, val));
+    } else if (uRenderMode == 5) {
+        // Binary checkerboard mapped by relaxed position (like UV-mapped checker)
+        float period = max(uGridPeriod, 1e-6);
+        vec2 uv2 = pos.xy / period;
+        float check = mod(floor(uv2.x) + floor(uv2.y), 2.0);
+        rgb = vec3(check);
+    } else if (uRenderMode == 6) {
+        // Grid lines mapped by relaxed position (like UV-mapped grid)
+        float period = max(uGridPeriod, 1e-6);
+        vec2 uv2 = pos.xy / period;
+        vec2 f = fract(uv2);
+        float w = 0.04; // line half-width in cell units
+        float dx = min(f.x, 1.0 - f.x);
+        float dy = min(f.y, 1.0 - f.y);
+        float lx = 1.0 - smoothstep(0.0, w, dx);
+        float ly = 1.0 - smoothstep(0.0, w, dy);
+        float g  = max(lx, ly);
+        rgb = vec3(g);
+    } else if (uRenderMode == 7) {
+        // Hybrid: Fz (relaxed) background + deflection-mapped grid lines as a wire mesh overlay
+        vec3 base = vec3(0.5 + fzFinal * uContrast);
+        float period = max(uGridPeriod, 1e-6);
+        vec2 uv2 = pos.xy / period;
+        vec2 f = fract(uv2);
+        float w = 0.04; // line half-width in cell units
+        float dx = min(f.x, 1.0 - f.x);
+        float dy = min(f.y, 1.0 - f.y);
+        float lx = 1.0 - smoothstep(0.0, w, dx);
+        float ly = 1.0 - smoothstep(0.0, w, dy);
+        float g  = max(lx, ly);
+        vec3 lineCol = (fzFinal >= 0.0) ? vec3(0.15, 1.0, 0.15) : vec3(1.0, 0.15, 0.15);
+        rgb = mix(base, lineCol, clamp(g, 0.0, 1.0));
     } else {
         // relative iteration count
         float denom = max(float(uOscSteps * uRelaxSub + uPreRelax), 1.0);

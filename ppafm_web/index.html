@@ -10,7 +10,7 @@
         --muted: #5a6170;
         --accent: #2f7de1;
         --border: #d4d8e1;
-        --pad: 2px;
+        --pad: 1px;
         --radius: 4px;
         --font: 11px "Segoe UI", "Helvetica Neue", Arial, sans-serif;
       }
@@ -30,9 +30,19 @@
         height: 512px;
         background: #fff;
         border-right: 1px solid var(--border);
+        position: relative;
+      }
+
+      #overlay2d {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
       }
       #ui {
-        flex: 0 0 640px; /* fixed-width sidebar */
+        flex: 0 0 480px; /* ~3/4 of the previous 640px */
         padding: var(--pad);
         box-sizing: border-box;
         overflow: auto;
@@ -41,15 +51,16 @@
       textarea {
         width: 200%;
         height: 200px;
-        padding: var(--pad);
+        margin: 2px 0;
         border: 1px solid var(--border);
         border-radius: var(--radius);
+        padding: var(--pad);
         background: #fff;
         color: var(--fg);
-        font: var(--font);
+        font: 11px/1.1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       }
       input[type="number"], input[type="text"], input[type="file"] {
-        width: 80px;
+        width: 64px;
         padding: var(--pad);
         margin: 1px;
         border: 1px solid var(--border);
@@ -69,9 +80,13 @@
         cursor: pointer;
       }
       button:hover { border-color: var(--accent); color: var(--accent); }
-      .row { margin-bottom: 2px; }
-      label { display: inline-block; width: 80px; margin: 1px 0; color: var(--muted); }
+      .row { margin-bottom: 1px; }
+      label { display: inline-block; width: 56px; margin: 1px 0; color: var(--muted); }
       a { color: var(--accent); }
+
+      select {
+        width: 130px;
+      }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r83/three.js"></script>
   </head>
@@ -100,17 +115,37 @@
           <label> Contrast    </label><input id="inpContrast"   type="number" step="0.1" value="10.0" />
         </div>
         <div class="row">
+          <label> Grid Å      </label><input id="inpGridPeriod" type="number" step="0.1" value="1.0" />
+        </div>
+        <div class="row">
           <label for="selRenderMode">Render mode</label>
-          <select id="selRenderMode" style="width: 260px; padding: var(--pad); margin: 1px; border: 1px solid var(--border); border-radius: var(--radius); background: #fff; color: var(--fg); font: var(--font);">
+          <select id="selRenderMode" style="padding: var(--pad); margin: 1px; border: 1px solid var(--border); border-radius: var(--radius); background: #fff; color: var(--fg); font: var(--font);">
             <option value="0">df (Giessibl)</option>
             <option value="1">Fz (relaxed)</option>
             <option value="2">|F| residual</option>
             <option value="3">Iterations (relative)</option>
+            <option value="4">Deflection HSV (dxy)</option>
+            <option value="5">Deflection checker (dxy)</option>
+            <option value="6">Deflection grid (dxy)</option>
+            <option value="7">Fz + deflection grid</option>
           </select>
         </div>
         <div class="row">
           <label> Auto-update </label><input id="chkAutoUpdate" type="checkbox" checked />
           <label> Animate     </label><input id="chkAnimate"    type="checkbox" />
+        </div>
+        <div class="row">
+          <label> Show atoms  </label><input id="chkShowAtoms" type="checkbox" checked />
+        </div>
+        <div class="row">
+          <label for="selAtomLabel">Atom labels</label>
+          <select id="selAtomLabel" style="padding: var(--pad); margin: 1px; border: 1px solid var(--border); border-radius: var(--radius); background: #fff; color: var(--fg); font: var(--font);">
+            <option value="0">none</option>
+            <option value="1">atom id</option>
+            <option value="2">symbol</option>
+            <option value="3">charge</option>
+            <option value="4">z</option>
+          </select>
         </div>
         <div class="row">
           <label> Center XY   </label><input id="chkCenterXY"   type="checkbox" checked />
@@ -121,7 +156,20 @@
       <fieldset style="border:1px solid var(--border); border-radius: var(--radius); padding: 4px; margin: 2px 0;">
         <legend style="padding:0 4px; color: var(--muted);">Probe params</legend>
         <div class="row">
-          <label> Probe Q     </label><input id="inpProbeQ"     type="number" step="0.01"   value="-0.05" />
+          <label for="selProbePreset">Preset</label>
+          <select id="selProbePreset" style="padding: var(--pad); margin: 1px; border: 1px solid var(--border); border-radius: var(--radius); background: #fff; color: var(--fg); font: var(--font);">
+            <option value="">(custom)</option>
+            <option value="CO">CO</option>
+            <option value="Xe">Xe</option>
+            <option value="Cl">Cl</option>
+          </select>
+        </div>
+        <div class="row">
+          <label> Q           </label><input id="inpProbeQ"     type="number" step="0.01"   value="-0.05" />
+          <label> Pz          </label><input id="inpTipPz"     type="number" step="0.01"   value="0.0" />
+          <label> Qzz         </label><input id="inpTipQzz"    type="number" step="0.01"   value="0.0" />
+        </div>
+        <div class="row">
           <label> Rpp         </label><input id="inpProbeR"     type="number" step="0.01"   value="1.6612" />
           <label> Epp         </label><input id="inpProbeE"     type="number" step="0.0001" value="0.009106" />
         </div>
@@ -182,7 +230,7 @@ H         -2.50150       -0.00060        0.00010     +0.2
 
         <div class="row" style="margin-top:2px;">
           <label for="selMolecule">Example .xyz</label>
-          <select id="selMolecule" style="width: 260px; padding: var(--pad); margin: 1px; border: 1px solid var(--border); border-radius: var(--radius); background: #fff; color: var(--fg); font: var(--font);">
+          <select id="selMolecule" style="padding: var(--pad); margin: 1px; border: 1px solid var(--border); border-radius: var(--radius); background: #fff; color: var(--fg); font: var(--font);">
             <option value="">(select molecule)</option>
           </select>
           <label for="fileXYZ" style="width:auto;">Load local</label>
@@ -262,6 +310,11 @@ Co	12.232819	10.07487	2.601853
         <div class="row" style="margin-top:2px;">
           <label style="width:160px;">Atom LJ params (R,E)</label>
         </div>
+        <div class="row" style="margin-top:2px;">
+          <label style="width:160px;">Params file</label>
+          <input id="fileAtomParams" type="file" accept=".ini,.txt,text/plain" style="width: 180px;" />
+          <button id="btnSaveAtomParams">Save</button>
+        </div>
         <textarea id="txtAtomParams" spellcheck="false" style="width: 200%; height: 140px;">H  1.4870 0.000681
 C  1.9080 0.003729
 N  1.7800 0.007372
@@ -293,21 +346,16 @@ Br 2.2200 0.013876
 
     <script>
       var renderer, scene, camera, material, mesh;
+      var overlayCanvas, overlayCtx;
       var animateEnabled = false; // animation OFF by default
       var autoUpdate     = true;  // auto-update ON by default
       var frameCounter   = 0;
 
-      // Minimal LJ parameter table extracted from atomtypes.ini
-      // Columns there: Rii, Eii, ???, Z, Symbol, ...
-      // Here we only keep Rii (Å) and Eii (eV) for elements used in examples.
-      var elementLJ = {
-        H :  { R: 1.4870, E: 0.000681 },
-        C :  { R: 1.9080, E: 0.003729 },
-        N :  { R: 1.7800, E: 0.007372 },
-        O :  { R: 1.6612, E: 0.009106 },
-        Cl:  { R: 1.9480, E: 0.011491 },
-        Br:  { R: 2.2200, E: 0.013876 }
-      };
+      // Raw atom list for JS overlay (un-padded, in sample coordinates)
+      var atomsJS = [];
+
+      // Element parameters loaded from common_resources/atomtypes.ini (R, E, optional color)
+      var elementLJ = {};
       // Molecule bounds in sample coordinates (after any Z-shift)
       var molBounds = {
         hasData: false,
@@ -322,6 +370,7 @@ Br 2.2200 0.013876
         uScale:      { value: 10.0 },
         uCenter:     { value: new THREE.Vector2(0.0, 0.0) },
         uContrast:   { value: 0.5 },
+        uGridPeriod: { value: 1.0 },
         uKLat:       { value: 0.5 },
         uKRad:       { value: 20.0 },
         uRtip:       { value: 4.0 },
@@ -340,6 +389,11 @@ Br 2.2200 0.013876
         uAtoms:      { value: [] },
         // Per-atom Morse+Coulomb parameters (R0,E0,Q,K)
         uREQK:       { value: [] }
+        ,
+        // Tip axial multipoles for electrostatics (monopole charge, dipole pz, quadrupole qzz)
+        uTipQ:       { value: 0.0 },
+        uTipPz:      { value: 0.0 },
+        uTipQzz:     { value: 0.0 }
       };
 
       function init() {
@@ -528,8 +582,8 @@ Br 2.2200 0.013876
         }
 
         function parseAtomParams(text) {
-          // Format: "Sym R E" per line; allow commas, comments (# ...), blank lines.
-          // Returns a new map {Sym:{R,E}, ...}. Fails loudly on malformed lines.
+          // Format: "Sym R E [#RRGGBB]" per line; allow commas, comments (# ...), blank lines.
+          // Returns a new map {Sym:{R,E,color}, ...}. Fails loudly on malformed lines.
           var out = {};
           var lines = text.split(/\r?\n/);
           for (var i = 0; i < lines.length; i++) {
@@ -543,9 +597,53 @@ Br 2.2200 0.013876
             var R = parseFloat(parts[1].replace(',', '.'));
             var E = parseFloat(parts[2].replace(',', '.'));
             if (!isFinite(R) || !isFinite(E)) throw new Error('Atom params line ' + (i+1) + ' has non-numeric R/E');
-            out[sym] = { R: R, E: E };
+            var col = null;
+            for (var k = 3; k < parts.length; k++) {
+              if (/^#[0-9a-fA-F]{6}$/.test(parts[k])) { col = parts[k]; break; }
+            }
+            out[sym] = { R: R, E: E, color: col };
           }
           return out;
+        }
+
+        function parseAtomtypesIni(text) {
+          // Expected columns: R E Z Sym [#RRGGBB]
+          // Allows whitespace/tabs; ignores blank lines.
+          var out = {};
+          var lines = text.split(/\r?\n/);
+          for (var i = 0; i < lines.length; i++) {
+            var L = lines[i].trim();
+            if (!L) continue;
+            // allow full-line comments
+            if (L[0] === '#') continue;
+            var parts = L.split(/\s+/);
+            if (parts.length < 4) continue;
+            var R = parseFloat(parts[0].replace(',', '.'));
+            var E = parseFloat(parts[1].replace(',', '.'));
+            var sym = parts[3];
+            if (!isFinite(R) || !isFinite(E) || !sym) continue;
+            var col = null;
+            for (var k = 4; k < parts.length; k++) {
+              if (/^#[0-9a-fA-F]{6}$/.test(parts[k])) { col = parts[k]; break; }
+            }
+            out[sym] = { R: R, E: E, color: col };
+          }
+          return out;
+        }
+
+        function atomParamsToText(map) {
+          var syms = Object.keys(map);
+          syms.sort(function (a, b) { return a.localeCompare(b); });
+          var out = [];
+          for (var i = 0; i < syms.length; i++) {
+            var s = syms[i];
+            var it = map[s];
+            var line = s + '  ' + Number(it.R).toFixed(6) + '  ' + Number(it.E).toFixed(9);
+            if (it.color) line += '  ' + it.color;
+            out.push(line);
+          }
+          out.push('');
+          return out.join('\n');
         }
 
         function updateElementLJFromTextarea() {
@@ -564,6 +662,115 @@ Br 2.2200 0.013876
           updateElementLJFromTextarea();
         } catch (e) {
           setStatus('Error parsing Atom LJ params: ' + e);
+        }
+
+        // Load defaults from common_resources/atomtypes.ini (overwrites textarea + elementLJ)
+        function loadDefaultAtomtypes() {
+          var urlA = '../common_resources/atomtypes.ini';
+          var urlB = 'atomtypes.ini';
+          return fetch(urlA).then(function (r) {
+            if (!r.ok) throw new Error('HTTP ' + r.status + ' for ' + urlA);
+            return r.text();
+          }).catch(function () {
+            return fetch(urlB).then(function (r2) {
+              if (!r2.ok) throw new Error('HTTP ' + r2.status + ' for ' + urlB);
+              return r2.text();
+            });
+          }).then(function (txt) {
+            var parsed = parseAtomtypesIni(txt);
+            if (!Object.keys(parsed).length) throw new Error('No entries parsed from atomtypes.ini');
+            elementLJ = parsed;
+            var ta = document.getElementById('txtAtomParams');
+            if (ta) ta.value = atomParamsToText(parsed);
+            if (uniforms && uniforms.uNumAtoms && uniforms.uNumAtoms.value > 0) {
+              applyXYZ(document.getElementById('txtXYZ').value);
+              updateViewFromInputs();
+            }
+            setStatus('Loaded atom params: atomtypes.ini');
+          }).catch(function (e) {
+            setStatus('Cannot load atomtypes.ini: ' + e);
+          });
+        }
+
+        loadDefaultAtomtypes();
+
+        // Load/save of atom parameter text
+        var fileAtomParams = document.getElementById('fileAtomParams');
+        if (fileAtomParams) {
+          fileAtomParams.addEventListener('change', function (e) {
+            var file = e.target.files[0];
+            if (!file) return;
+            var reader = new FileReader();
+            reader.onload = function (evt) {
+              var txt = evt.target.result;
+              var ta = document.getElementById('txtAtomParams');
+              if (ta) ta.value = txt;
+              try {
+                updateElementLJFromTextarea();
+                setStatus('Loaded atom params: ' + file.name);
+              } catch (err) {
+                setStatus('Error parsing atom params: ' + err);
+                throw err;
+              }
+            };
+            reader.readAsText(file);
+          });
+        }
+
+        function saveAtomParamsText() {
+          var ta = document.getElementById('txtAtomParams');
+          var txt = (ta && ta.value) ? ta.value : '';
+          if (!txt.trim()) { setStatus('Nothing to save (Atom params textarea is empty)'); return; }
+          var blob = new Blob([txt], { type: 'text/plain' });
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement('a');
+          a.href = url;
+          a.download = 'atomtypes.ini';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(function () { URL.revokeObjectURL(url); }, 0);
+          setStatus('Saved: atomtypes.ini');
+        }
+
+        var btnSaveAtomParams = document.getElementById('btnSaveAtomParams');
+        if (btnSaveAtomParams) btnSaveAtomParams.addEventListener('click', saveAtomParamsText);
+
+        // Probe presets
+        function applyProbePreset(name) {
+          if (!name) return;
+          var qEl = document.getElementById('inpProbeQ');
+          var rEl = document.getElementById('inpProbeR');
+          var eEl = document.getElementById('inpProbeE');
+          var pzEl = document.getElementById('inpTipPz');
+          var qzzEl = document.getElementById('inpTipQzz');
+          if (!(qEl && rEl && eEl && pzEl && qzzEl)) return;
+
+          // Default multipoles
+          var Q = 0.0, Pz = 0.0, Qzz = 0.0;
+          var symForLJ = name;
+          if      (name === 'CO') { symForLJ = 'O';  Qzz = -0.2; } 
+          else if (name === 'Xe') { symForLJ = 'Xe'; Q   = +0.1; } 
+          else if (name === 'Cl') { symForLJ = 'Cl'; Q   = -0.15; }
+          var lj = elementLJ[symForLJ];
+          if (lj) {
+            rEl.value = String(lj.R);
+            eEl.value = String(lj.E);
+          }
+          qEl.value = String(Q);
+          pzEl.value = String(Pz);
+          qzzEl.value = String(Qzz);
+
+          applyXYZ(document.getElementById('txtXYZ').value);
+          updateViewFromInputs();
+          setStatus('Probe preset: ' + name);
+        }
+
+        var selProbePreset = document.getElementById('selProbePreset');
+        if (selProbePreset) {
+          selProbePreset.addEventListener('change', function () {
+            applyProbePreset(selProbePreset.value);
+          });
         }
 
         // Auto-update element LJ parameters
@@ -588,6 +795,18 @@ Br 2.2200 0.013876
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(container.clientWidth, container.clientHeight);
         container.appendChild(renderer.domElement);
+
+        // 2D overlay canvas on top of WebGL
+        overlayCanvas = document.getElementById('overlay2d');
+        if (!overlayCanvas) {
+          overlayCanvas = document.createElement('canvas');
+          overlayCanvas.id = 'overlay2d';
+        }
+        overlayCanvas.width  = renderer.domElement.width;
+        overlayCanvas.height = renderer.domElement.height;
+        container.appendChild(overlayCanvas);
+        overlayCanvas.style.zIndex = '10';
+        overlayCtx = overlayCanvas.getContext('2d');
 
         uniforms.uResolution.value.set(renderer.domElement.width, renderer.domElement.height);
 
@@ -791,6 +1010,10 @@ Br 2.2200 0.013876
           var cxUser   = parseFloat(document.getElementById('inpCX').value);
           var cyUser   = parseFloat(document.getElementById('inpCY').value);
           var contrast = parseFloat(document.getElementById('inpContrast').value);
+          var gridPer  = parseFloat(document.getElementById('inpGridPeriod').value);
+          var tipQ     = parseFloat(document.getElementById('inpProbeQ').value);
+          var tipPz    = parseFloat(document.getElementById('inpTipPz').value);
+          var tipQzz   = parseFloat(document.getElementById('inpTipQzz').value);
           var kLat     = parseFloat(document.getElementById('inpKLat').value);
           var kRad     = parseFloat(document.getElementById('inpKRad').value);
           var RTip     = parseFloat(document.getElementById('inpRTip').value);
@@ -886,6 +1109,11 @@ Br 2.2200 0.013876
           }
           uniforms.uCenter.value.set(centerX, centerY);
           uniforms.uContrast.value = contrast;
+          uniforms.uGridPeriod.value = (isFinite(gridPer) && gridPer > 0.0) ? gridPer : 1.0;
+          // Tip multipoles (pass-through; electrostatics computed in shader)
+          uniforms.uTipQ.value   = isFinite(tipQ)   ? tipQ   : 0.0;
+          uniforms.uTipPz.value  = isFinite(tipPz)  ? tipPz  : 0.0;
+          uniforms.uTipQzz.value = isFinite(tipQzz) ? tipQzz : 0.0;
           uniforms.uKLat.value       = kLat / 16.02176634; // convert from N/m to eV/Å^2
           uniforms.uKRad.value       = kRad / 16.02176634; // convert from N/m to eV/Å^2
           uniforms.uRtip.value       = RTip;
@@ -935,7 +1163,7 @@ Br 2.2200 0.013876
         document.getElementById('btnUpdateView').addEventListener('click', updateViewFromInputs);
 
         // Auto-update when basic view parameter inputs change (if enabled)
-        ['inpZ', 'inpScale', 'inpCX', 'inpCY', 'inpContrast', 'selRenderMode', 'inpKLat', 'inpKRad', 'inpRTip', 'inpRelaxIters', 'inpDt', 'inpAlgo', 'inpF2Conv', 'inpOscSteps', 'inpDz', 'inpOscAmp', 'inpPreRelax', 'inpRelaxSub']
+        ['inpZ', 'inpScale', 'inpCX', 'inpCY', 'inpContrast', 'inpGridPeriod', 'selRenderMode', 'inpKLat', 'inpKRad', 'inpRTip', 'inpRelaxIters', 'inpDt', 'inpAlgo', 'inpF2Conv', 'inpOscSteps', 'inpDz', 'inpOscAmp', 'inpPreRelax', 'inpRelaxSub']
           .forEach(function (id) {
             var el = document.getElementById(id);
             if (!el) return;
@@ -946,24 +1174,23 @@ Br 2.2200 0.013876
             });
           });
 
-        // Mouse wheel should behave like up/down arrows on numeric inputs
-        function attachWheelIncrement(id) {
-          var el = document.getElementById(id);
-          if (!el) return;
+        // Enable wheel increment/decrement for all numeric inputs (no need to maintain an ID list)
+        Array.prototype.forEach.call(document.querySelectorAll('input[type="number"]'), function (el) {
+          // Attach once per element
           el.addEventListener('wheel', function (ev) {
             ev.preventDefault();
             var step = parseFloat(el.step) || 1.0;
             var v    = parseFloat(el.value) || 0.0;
             var dir  = (ev.deltaY > 0) ? -1.0 : 1.0; // wheel up -> increase
             el.value = (v + dir * step).toString();
-            updateViewFromInputs();
-          });
-        }
-
-        ['inpZ', 'inpScale', 'inpCX', 'inpCY', 'inpContrast', 'inpKLat', 'inpKRad', 'inpRTip', 'inpDt', 'inpAlgo', 'inpF2Conv', 'inpOscSteps', 'inpDz', 'inpOscAmp', 'inpPreRelax', 'inpRelaxSub'].forEach(attachWheelIncrement);
+            // Trigger the same listeners as manual edits (some inputs need applyXYZ, others only updateViewFromInputs)
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+          }, { passive: false });
+        });
 
         // Auto-update REQK when probe parameters change
-        ['inpProbeQ', 'inpProbeR', 'inpProbeE'].forEach(function (id) {
+        ['inpProbeQ', 'inpProbeR', 'inpProbeE', 'inpTipPz', 'inpTipQzz'].forEach(function (id) {
           var el = document.getElementById(id);
           if (!el) return;
           el.addEventListener('input', function () {
@@ -987,6 +1214,23 @@ Br 2.2200 0.013876
         // Checkboxes to control auto-update and animation
         var chkAutoUpdate = document.getElementById('chkAutoUpdate');
         var chkAnimate    = document.getElementById('chkAnimate');
+        var chkShowAtoms  = document.getElementById('chkShowAtoms');
+        var selAtomLabel  = document.getElementById('selAtomLabel');
+        var chkCenterXY   = document.getElementById('chkCenterXY');
+        var chkShiftZ     = document.getElementById('chkShiftZ');
+        var selRenderMode = document.getElementById('selRenderMode');
+
+        function forceRecomputeFromUI() {
+          // Called on checkbox/select changes; keep behavior simple & explicit.
+          applyXYZ(document.getElementById('txtXYZ').value);
+          updateViewFromInputs();
+        }
+
+        function forceOverlayRedraw() {
+          // When only overlay options change we don't need shader recompute.
+          drawOverlayAtoms();
+        }
+
         if (chkAutoUpdate) {
           chkAutoUpdate.addEventListener('change', function () {
             autoUpdate = !!chkAutoUpdate.checked;
@@ -1004,6 +1248,13 @@ Br 2.2200 0.013876
           });
         }
 
+        // Ensure select/checkbox changes actually trigger update/redraw
+        if (selRenderMode) selRenderMode.addEventListener('change', function () { if (autoUpdate) updateViewFromInputs(); else renderOnce(); });
+        if (chkCenterXY)   chkCenterXY.addEventListener('change', function () { if (autoUpdate) updateViewFromInputs(); else renderOnce(); });
+        if (chkShiftZ)     chkShiftZ.addEventListener('change', function () { if (autoUpdate) forceRecomputeFromUI(); else renderOnce(); });
+        if (chkShowAtoms)  chkShowAtoms.addEventListener('change', forceOverlayRedraw);
+        if (selAtomLabel)  selAtomLabel.addEventListener('change', forceOverlayRedraw);
+
       }
 
       function onWindowResize() {
@@ -1011,6 +1262,81 @@ Br 2.2200 0.013876
         if (!renderer) return;
         renderer.setSize(container.clientWidth, container.clientHeight);
         uniforms.uResolution.value.set(renderer.domElement.width, renderer.domElement.height);
+        if (overlayCanvas) {
+          overlayCanvas.width  = renderer.domElement.width;
+          overlayCanvas.height = renderer.domElement.height;
+        }
+      }
+
+      function drawOverlayAtoms() {
+        if (!overlayCtx || !overlayCanvas) return;
+        var chk = document.getElementById('chkShowAtoms');
+        if (!(chk && chk.checked)) {
+          overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+          return;
+        }
+        var W = overlayCanvas.width;
+        var H = overlayCanvas.height;
+        overlayCtx.clearRect(0, 0, W, H);
+        if (!atomsJS || atomsJS.length === 0) return;
+
+        var cx = uniforms.uCenter.value.x;
+        var cy = uniforms.uCenter.value.y;
+        var scale = uniforms.uScale.value;
+
+        var selLabel = document.getElementById('selAtomLabel');
+        var labelMode = parseInt((selLabel && selLabel.value) ? selLabel.value : '0', 10) || 0;
+
+        function colorForSym(sym) {
+          var it = elementLJ ? elementLJ[sym] : null;
+          if (it && it.color) {
+            return 'rgba(' + parseInt(it.color.substr(1,2),16) + ',' + parseInt(it.color.substr(3,2),16) + ',' + parseInt(it.color.substr(5,2),16) + ',0.9)';
+          }
+          if (sym === 'Co') return 'rgba(255,140,0,0.9)';
+          return 'rgba(255,255,0,0.9)';
+        }
+
+        overlayCtx.lineWidth = 1;
+        if (labelMode !== 0) {
+          overlayCtx.font = '10px "Segoe UI", "Helvetica Neue", Arial, sans-serif';
+          overlayCtx.textBaseline = 'middle';
+        }
+        for (var i = 0; i < atomsJS.length; i++) {
+          var a = atomsJS[i];
+          // shader mapping: uv = (frag/res)*2-1; posXY = center + uv*scale
+          var uvx = (a.x - cx) / scale;
+          var uvy = (a.y - cy) / scale;
+          var px = (uvx * 0.5 + 0.5) * W;
+          // WebGL frag coords have origin at bottom-left; 2D canvas has origin at top-left
+          var py = (1.0 - (uvy * 0.5 + 0.5)) * H;
+          // outside viewport -> skip
+          if (px < -20 || px > W + 20 || py < -20 || py > H + 20) continue;
+          overlayCtx.beginPath();
+          overlayCtx.fillStyle = colorForSym(a.sym);
+          overlayCtx.strokeStyle = 'rgba(0,0,0,0.6)';
+          overlayCtx.arc(px, py, 3.0, 0, Math.PI * 2);
+          overlayCtx.fill();
+          overlayCtx.stroke();
+
+          if (labelMode !== 0) {
+            var txt = '';
+            if (labelMode === 1) {
+              txt = (a.i !== undefined && a.i !== null) ? String(a.i) : String(i);
+            } else if (labelMode === 2) {
+              txt = a.sym;
+            } else if (labelMode === 3) {
+              txt = (a.q !== undefined && a.q !== null) ? Number(a.q).toFixed(2) : '0.00';
+            } else if (labelMode === 4) {
+              txt = (a.z !== undefined && a.z !== null) ? Number(a.z).toFixed(2) : '0.00';
+            }
+            if (txt) {
+              var tx = px + 5.0;
+              var ty = py;
+              overlayCtx.fillStyle = 'rgba(0,0,0,0.6)';
+              overlayCtx.fillText(txt, tx, ty);
+            }
+          }
+        }
       }
 
       // Render a single frame (used both for on-demand updates and animation)
@@ -1018,6 +1344,7 @@ Br 2.2200 0.013876
         if (!(renderer && scene && camera)) return;
         console.log('renderOnce: rendering frame');
         renderer.render(scene, camera);
+        drawOverlayAtoms();
       }
 
       function animate() {
@@ -1075,11 +1402,13 @@ Br 2.2200 0.013876
           }
         }
         var atoms = [];
+        var atomsRaw = [];
         var minX =  1e9, minY =  1e9, minZ =  1e9;
         var maxX = -1e9, maxY = -1e9, maxZ = -1e9;
         for (var i = 0; i < natoms; i++) {
           var parts = lines[atomStartIndex + i].trim().split(/\s+/);
           if (parts.length < 4) continue;
+          var sym = parts[0];
           var x = parseFloat(parts[1]);
           var y = parseFloat(parts[2]);
           var z = parseFloat(parts[3]);
@@ -1090,6 +1419,7 @@ Br 2.2200 0.013876
             if (isFinite(qtmp)) { q = qtmp; break; }
           }
           atoms.push(new THREE.Vector4(x, y, z, q));
+          atomsRaw.push({ i: i, sym: sym, x: x, y: y, z: z, q: q });
           if (x < minX) minX = x; if (x > maxX) maxX = x;
           if (y < minY) minY = y; if (y > maxY) maxY = y;
           if (z < minZ) minZ = z; if (z > maxZ) maxZ = z;
@@ -1099,8 +1429,9 @@ Br 2.2200 0.013876
         var Rpp    = parseFloat(document.getElementById('inpProbeR').value) || 1.6612;   // O from atomtypes.ini
         var Epp    = parseFloat(document.getElementById('inpProbeE').value) || 0.009106; // O from atomtypes.ini
 
-        // Build REQK per atom: (R0,E0,Q,K) using Lorentz-Berthelot mixing
-        // Rij = Rpp + Rii, Eij = sqrt(Epp * Eii), Q = qProbe * q_atom
+        // Build REQK per atom: (R0,E0,q_atom,K) using Lorentz-Berthelot mixing
+        // Rij = Rpp + Rii, Eij = sqrt(Epp * Eii). Atom charge is passed through directly;
+        // tip electrostatics (monopole/dipole/quadrupole) are applied in the shader.
         var REQK = [];
         var K_default   = 1.5;
         for (var j = 0; j < atoms.length; j++) {
@@ -1112,8 +1443,7 @@ Br 2.2200 0.013876
           var R0  = Rpp + Rii;
           var E0  = Math.sqrt(Math.max(Epp,0.0) * Math.max(Eii,0.0));
           var qj  = atoms[j].w;
-          var Qij = qProbe * qj;
-          REQK.push(new THREE.Vector4(R0, E0, Qij, K_default));
+          REQK.push(new THREE.Vector4(R0, E0, qj, K_default));
         }
 
         // GLSL uses fixed-size arrays uAtoms[256] and uREQK[256], so pad
@@ -1152,6 +1482,9 @@ Br 2.2200 0.013876
             for (var ia = 0; ia < atoms.length; ia++) {
               atoms[ia].z -= zShift;
             }
+            for (var ia = 0; ia < atomsRaw.length; ia++) {
+              atomsRaw[ia].z -= zShift;
+            }
           }
 
           molBounds.hasData = true;
@@ -1162,6 +1495,9 @@ Br 2.2200 0.013876
           molBounds.minZ = minZ;
           molBounds.maxZ = maxZ;
         }
+
+        // Update JS overlay atom list (only real atoms, not padded)
+        atomsJS = atomsRaw;
 
         // Debug output
         if (uniforms.uNumAtoms.value > 0) {
