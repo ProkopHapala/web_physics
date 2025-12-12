@@ -39,7 +39,11 @@ uniform int   uRelaxIters;
 uniform float uDt;
 uniform float uDamp;
 uniform float uF2Conv;
-uniform int   uAlgo;        // 0 = basic Euler, 1 = zero-velocity quench
+uniform int   uAlgo;        // 0 = current, 1 = trust region, 2 = switch (precond/GD), 3 = GD
+uniform float uStepMaxXY;   // trust region clamp for xy step (Å per sub-iteration)
+uniform float uStepMaxZ;    // trust region clamp for z step  (Å per sub-iteration)
+uniform float uStepSwitch;  // switch threshold on |F*invK| for Algo=2 (Å)
+uniform float uGDStep;      // gradient descent step length (Å)
 uniform int   uRenderMode;  // 0 = df, 1 = Fz, 2 = residual |F|, 3 = iter count
 uniform float uGridPeriod;  // grid/checker spacing in Å for deflection visualization
 uniform int   uOscSteps;    // number of approach/oscillation steps (<=128)
@@ -194,6 +198,15 @@ vec3 computeTipForce(vec3 dpos) {
     return FtipLat + FtipRad;
 }
 
+// Stabilization helper: clamp step in a trust region (used for Algo>=1)
+vec3 clampStep(vec3 dpos) {
+    float maxXY = max(uStepMaxXY, 1e-6);
+    float maxZ  = max(uStepMaxZ,  1e-6);
+    float dxy   = length(dpos.xy);
+    if (dxy > maxXY) dpos.xy *= (maxXY / dxy);
+    dpos.z = clamp(dpos.z, -maxZ, maxZ);
+    return dpos;
+}
 
 // --- MAIN KERNEL: Morse+Coulomb via REQK ---
 
@@ -221,7 +234,19 @@ void main() {
         vec3 Ftip  = computeTipForce(pos - anchor);
         vec3 Ftot  = Fsamp + Ftip;
         if (dot(Ftot, Ftot) < uF2Conv) break;
-        pos += Ftot * invK;
+        vec3 dN  = Ftot * invK; // current proposal
+        if (uAlgo == 0) {
+            pos += dN;
+        } else {
+            vec3 dGD = normalize(Ftot + vec3(1e-12)) * max(uGDStep, 1e-6);
+            if (uAlgo == 1) {
+                pos += clampStep(dN);
+            } else if (uAlgo == 2) {
+                pos += (length(dN) < max(uStepSwitch, 1e-6)) ? dN : clampStep(dGD);
+            } else {
+                pos += clampStep(dGD);
+            }
+        }
     }
 
     float dfAccum = 0.0;
@@ -242,7 +267,19 @@ void main() {
             Ftot = Fsamp + Ftip;
             resF2 = dot(Ftot, Ftot);
             if (resF2 < uF2Conv) break;
-            pos += Ftot * invK;
+            vec3 dN  = Ftot * invK; // current proposal
+            if (uAlgo == 0) {
+                pos += dN;
+            } else {
+                vec3 dGD = normalize(Ftot + vec3(1e-12)) * max(uGDStep, 1e-6);
+                if (uAlgo == 1) {
+                    pos += clampStep(dN);
+                } else if (uAlgo == 2) {
+                    pos += (length(dN) < max(uStepSwitch, 1e-6)) ? dN : clampStep(dGD);
+                } else {
+                    pos += clampStep(dGD);
+                }
+            }
         }
 
         // Measure force after relaxation at this step

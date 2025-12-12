@@ -120,8 +120,8 @@
         <div class="row">
           <label for="selRenderMode">Render mode</label>
           <select id="selRenderMode" style="padding: var(--pad); margin: 1px; border: 1px solid var(--border); border-radius: var(--radius); background: #fff; color: var(--fg); font: var(--font);">
-            <option value="0">df (Giessibl)</option>
-            <option value="1">Fz (relaxed)</option>
+            <option value="0">Fz (relaxed)</option>
+            <option value="1">df (Giessibl)</option>
             <option value="2">|F| residual</option>
             <option value="3">Iterations (relative)</option>
             <option value="4">Deflection HSV (dxy)</option>
@@ -203,7 +203,15 @@
         <div class="row">
           <label> Pre-relax   </label><input id="inpPreRelax"   type="number" step="1"      value="16" />
           <label> Substeps    </label><input id="inpRelaxSub"   type="number" step="1"      value="4" />
-          <label> Algo (0/1)</label><input id="inpAlgo"        type="number" step="1"      value="0" />
+          <label> Algo (0..3)</label><input id="inpAlgo"        type="number" step="1"      value="1" />
+        </div>
+        <div class="row">
+          <label> StepXY Å    </label><input id="inpStepMaxXY"  type="number" step="0.01"   value="0.10" />
+          <label> StepZ Å     </label><input id="inpStepMaxZ"   type="number" step="0.01"   value="0.15" />
+          <label> Switch Å    </label><input id="inpStepSwitch" type="number" step="0.01"   value="0.35" />
+        </div>
+        <div class="row">
+          <label> GDstep Å    </label><input id="inpGDStep"     type="number" step="0.01"   value="0.10" />
         </div>
       </details>
       <div class="row">
@@ -371,14 +379,18 @@ Br 2.2200 0.013876
         uCenter:     { value: new THREE.Vector2(0.0, 0.0) },
         uContrast:   { value: 0.5 },
         uGridPeriod: { value: 1.0 },
+        uStepMaxXY:  { value: 0.10 },
+        uStepMaxZ:   { value: 0.15 },
+        uStepSwitch: { value: 0.35 },
+        uGDStep:     { value: 0.10 },
         uKLat:       { value: 0.5 },
         uKRad:       { value: 20.0 },
         uRtip:       { value: 4.0 },
         uRelaxIters: { value: 16 },
         uDt:         { value: 0.1 },
         uF2Conv:     { value: 1e-6 },
-        uAlgo:       { value: 0 },   // 0 = basic Euler, 1 = quench
-        uRenderMode: { value: 0 },   // 0 = df, 1 = Fz, 2 = residual |F|, 3 = iter count
+        uAlgo:       { value: 1 },   // 0 = basic Euler, 1 = quench
+        uRenderMode: { value: 1 },   // 0 = df, 1 = Fz, 2 = residual |F|, 3 = iter count
         uOscSteps:   { value: 8 },
         uDz:         { value: 0.1 },
         uOscAmp:     { value: 0.8 },
@@ -1056,6 +1068,10 @@ Br 2.2200 0.013876
           var oscAmp   = parseFloat(document.getElementById('inpOscAmp').value);
           var preRelax = parseInt  (document.getElementById('inpPreRelax').value, 10);
           var relaxSub = parseInt  (document.getElementById('inpRelaxSub').value, 10);
+          var stepMaxXY  = parseFloat(document.getElementById('inpStepMaxXY').value);
+          var stepMaxZ   = parseFloat(document.getElementById('inpStepMaxZ').value);
+          var stepSwitch = parseFloat(document.getElementById('inpStepSwitch').value);
+          var gdStep     = parseFloat(document.getElementById('inpGDStep').value);
 
           // Apply defaults if parsing failed
         //   if (!isFinite(z))        z        = 0.0;
@@ -1138,6 +1154,10 @@ Br 2.2200 0.013876
           uniforms.uCenter.value.set(centerX, centerY);
           uniforms.uContrast.value = contrast;
           uniforms.uGridPeriod.value = (isFinite(gridPer) && gridPer > 0.0) ? gridPer : 1.0;
+          uniforms.uStepMaxXY.value  = (isFinite(stepMaxXY)  && stepMaxXY  > 0.0) ? stepMaxXY  : 0.10;
+          uniforms.uStepMaxZ.value   = (isFinite(stepMaxZ)   && stepMaxZ   > 0.0) ? stepMaxZ   : 0.15;
+          uniforms.uStepSwitch.value = (isFinite(stepSwitch) && stepSwitch > 0.0) ? stepSwitch : 0.35;
+          uniforms.uGDStep.value     = (isFinite(gdStep)     && gdStep     > 0.0) ? gdStep     : 0.10;
           // Tip multipoles (pass-through; electrostatics computed in shader)
           uniforms.uTipQ.value   = isFinite(tipQ)   ? tipQ   : 0.0;
           uniforms.uTipPz.value  = isFinite(tipPz)  ? tipPz  : 0.0;
@@ -1191,7 +1211,7 @@ Br 2.2200 0.013876
         document.getElementById('btnUpdateView').addEventListener('click', updateViewFromInputs);
 
         // Auto-update when basic view parameter inputs change (if enabled)
-        ['inpZ', 'inpScale', 'inpCX', 'inpCY', 'inpContrast', 'inpGridPeriod', 'selRenderMode', 'inpKLat', 'inpKRad', 'inpRTip', 'inpRelaxIters', 'inpDt', 'inpAlgo', 'inpF2Conv', 'inpOscSteps', 'inpDz', 'inpOscAmp', 'inpPreRelax', 'inpRelaxSub']
+        ['inpZ', 'inpScale', 'inpCX', 'inpCY', 'inpContrast', 'inpGridPeriod', 'selRenderMode', 'inpKLat', 'inpKRad', 'inpRTip', 'inpRelaxIters', 'inpDt', 'inpAlgo', 'inpF2Conv', 'inpOscSteps', 'inpDz', 'inpOscAmp', 'inpPreRelax', 'inpRelaxSub', 'inpStepMaxXY', 'inpStepMaxZ', 'inpStepSwitch', 'inpGDStep']
           .forEach(function (id) {
             var el = document.getElementById(id);
             if (!el) return;
