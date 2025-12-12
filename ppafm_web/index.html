@@ -86,57 +86,78 @@
         then verify at <a href="https://get.webgl.org" target="_blank" rel="noopener">get.webgl.org</a>.
       </div>
       <div class="row"><strong>Probe-Particle AFM (Stage 1: atoms as blobs)</strong></div>
-      <div class="row">
-        <label for="fileXYZ">Load local .xyz</label>
-        <input id="fileXYZ" type="file" accept=".xyz,text/plain" />
-      </div>
-      <div class="row">
-        <label> Z plane     </label><input id="inpZ"          type="number" step="0.1" value="6.2" />
-        <label> Scale       </label><input id="inpScale"      type="number" step="0.5" value="10.0" />
-      </div>
-      <div class="row">
-        <label> Center X    </label><input id="inpCX"         type="number" step="0.5" value="0.0" />
-        <label> Center Y    </label><input id="inpCY"         type="number" step="0.5" value="0.0" />
-      </div>
-      <div class="row">
-        <label> Contrast    </label><input id="inpContrast"   type="number" step="0.1" value="10.0" />
-      </div>
-      <div class="row">
-        <label> Auto-update </label><input id="chkAutoUpdate" type="checkbox" checked />
-        <label> Animate     </label><input id="chkAnimate"    type="checkbox" />
-      </div>
-      <div class="row">
-        <label> Center XY   </label><input id="chkCenterXY"   type="checkbox" checked />
-        <label> Shift Z     </label><input id="chkShiftZ"     type="checkbox" checked />
-      </div>
-      <div class="row">
-        <label> Probe Q     </label><input id="inpProbeQ"     type="number" step="0.01"   value="-0.05" />
-        <label> Rpp         </label><input id="inpProbeR"     type="number" step="0.01"   value="1.6612" />
-        <label> Epp         </label><input id="inpProbeE"     type="number" step="0.0001" value="0.009106" />
-      </div>
-      <div class="row">
-        <label> k_lat       </label><input id="inpKLat"       type="number" step="0.1"    value="0.5" />
-        <label> k_rad       </label><input id="inpKRad"       type="number" step="1"      value="20.0" />
-        <label> R_tip       </label><input id="inpRTip"       type="number" step="0.1"    value="3.5" />
-      </div>
-      <div class="row">
-        <label> Relax iters </label><input id="inpRelaxIters" type="number" step="1"      value="32" />
-        <label> dt          </label><input id="inpDt"         type="number" step="0.01"   value="0.5" />
-        <label> F2Conv      </label><input id="inpF2Conv"     type="number" step="1e-8"   value="1e-6" />
-      </div>
-      <div class="row">
-        <label> Osc steps   </label><input id="inpOscSteps"   type="number" step="1"      value="8" />
-        <label> dz          </label><input id="inpDz"         type="number" step="0.01"   value="0.1" />
-        <label> Amp         </label><input id="inpOscAmp"     type="number" step="0.1"    value="0.8" />
-      </div>
-      <div class="row">
-        <label> Pre-relax   </label><input id="inpPreRelax"   type="number" step="1"      value="16" />
-        <label> Substeps    </label><input id="inpRelaxSub"   type="number" step="1"      value="4" />
-        <label> Render (0/1/2/3)</label><input id="inpRender" type="number" step="1"      value="0" />
-      </div>
-      <div class="row">
-        <label> Algo (0/1)</label><input id="inpAlgo"        type="number" step="1"      value="0" />
-      </div>
+      <fieldset style="border:1px solid var(--border); border-radius: var(--radius); padding: 4px; margin: 2px 0;">
+        <legend style="padding:0 4px; color: var(--muted);">View</legend>
+        <div class="row">
+          <label> Z plane     </label><input id="inpZ"          type="number" step="0.1" value="6.2" />
+          <label> Scale       </label><input id="inpScale"      type="number" step="0.5" value="10.0" />
+        </div>
+        <div class="row">
+          <label> Center X    </label><input id="inpCX"         type="number" step="0.5" value="0.0" />
+          <label> Center Y    </label><input id="inpCY"         type="number" step="0.5" value="0.0" />
+        </div>
+        <div class="row">
+          <label> Contrast    </label><input id="inpContrast"   type="number" step="0.1" value="10.0" />
+        </div>
+        <div class="row">
+          <label for="selRenderMode">Render mode</label>
+          <select id="selRenderMode" style="width: 260px; padding: var(--pad); margin: 1px; border: 1px solid var(--border); border-radius: var(--radius); background: #fff; color: var(--fg); font: var(--font);">
+            <option value="0">df (Giessibl)</option>
+            <option value="1">Fz (relaxed)</option>
+            <option value="2">|F| residual</option>
+            <option value="3">Iterations (relative)</option>
+          </select>
+        </div>
+        <div class="row">
+          <label> Auto-update </label><input id="chkAutoUpdate" type="checkbox" checked />
+          <label> Animate     </label><input id="chkAnimate"    type="checkbox" />
+        </div>
+        <div class="row">
+          <label> Center XY   </label><input id="chkCenterXY"   type="checkbox" checked />
+          <label> Shift Z     </label><input id="chkShiftZ"     type="checkbox" checked />
+        </div>
+      </fieldset>
+
+      <fieldset style="border:1px solid var(--border); border-radius: var(--radius); padding: 4px; margin: 2px 0;">
+        <legend style="padding:0 4px; color: var(--muted);">Probe params</legend>
+        <div class="row">
+          <label> Probe Q     </label><input id="inpProbeQ"     type="number" step="0.01"   value="-0.05" />
+          <label> Rpp         </label><input id="inpProbeR"     type="number" step="0.01"   value="1.6612" />
+          <label> Epp         </label><input id="inpProbeE"     type="number" step="0.0001" value="0.009106" />
+        </div>
+      </fieldset>
+
+      <fieldset style="border:1px solid var(--border); border-radius: var(--radius); padding: 4px; margin: 2px 0;">
+        <legend style="padding:0 4px; color: var(--muted);">Stiffness</legend>
+        <div class="row">
+          <label> k_lat       </label><input id="inpKLat"       type="number" step="0.1"    value="0.5" />
+          <label> k_rad       </label><input id="inpKRad"       type="number" step="1"      value="20.0" />
+          <label> R_tip       </label><input id="inpRTip"       type="number" step="0.1"    value="3.5" />
+        </div>
+      </fieldset>
+
+      <fieldset style="border:1px solid var(--border); border-radius: var(--radius); padding: 4px; margin: 2px 0;">
+        <legend style="padding:0 4px; color: var(--muted);">F → df</legend>
+        <div class="row">
+          <label> Osc steps   </label><input id="inpOscSteps"   type="number" step="1"      value="8" />
+          <label> dz          </label><input id="inpDz"         type="number" step="0.01"   value="0.1" />
+          <label> Amp         </label><input id="inpOscAmp"     type="number" step="0.1"    value="0.8" />
+        </div>
+      </fieldset>
+
+      <details id="detailsAdvanced" style="border:1px solid var(--border); border-radius: var(--radius); padding: 4px; margin: 2px 0;">
+        <summary style="color: var(--muted); cursor: pointer;">Advanced</summary>
+        <div class="row">
+          <label> Relax iters </label><input id="inpRelaxIters" type="number" step="1"      value="32" />
+          <label> dt          </label><input id="inpDt"         type="number" step="0.01"   value="0.5" />
+          <label> F2Conv      </label><input id="inpF2Conv"     type="number" step="1e-8"   value="1e-6" />
+        </div>
+        <div class="row">
+          <label> Pre-relax   </label><input id="inpPreRelax"   type="number" step="1"      value="16" />
+          <label> Substeps    </label><input id="inpRelaxSub"   type="number" step="1"      value="4" />
+          <label> Algo (0/1)</label><input id="inpAlgo"        type="number" step="1"      value="0" />
+        </div>
+      </details>
       <div class="row">
         <button id="btnApplyXYZ">Apply XYZ below</button>
         <button id="btnUpdateView">Update view</button>
@@ -158,6 +179,23 @@ H          1.22000        2.15150        0.00000     +0.2
 H          1.22130       -2.15110       -0.00010     +0.2
 H         -2.50150       -0.00060        0.00010     +0.2
 </textarea> -->
+
+        <div class="row" style="margin-top:2px;">
+          <label for="selMolecule">Example .xyz</label>
+          <select id="selMolecule" style="width: 260px; padding: var(--pad); margin: 1px; border: 1px solid var(--border); border-radius: var(--radius); background: #fff; color: var(--fg); font: var(--font);">
+            <option value="">(select molecule)</option>
+          </select>
+          <label for="fileXYZ" style="width:auto;">Load local</label>
+          <input id="fileXYZ" type="file" accept=".xyz,text/plain" style="width: 180px;" />
+          <button id="btnSaveXYZ">Save</button>
+        </div>
+
+        <div class="row" style="margin-top:2px;">
+          <label style="width:160px;">Geometry tools</label>
+          <button id="btnGeomShiftZ">Shift Z→0</button>
+          <button id="btnGeomFlattenZ">Flatten Z</button>
+          <button id="btnGeomPCA">Align PCA</button>
+        </div>
 
         <textarea id="txtXYZ" spellcheck="false">
 57		
@@ -219,6 +257,17 @@ N	13.142926	8.392626	2.667018
 N	10.546202	9.174504	2.657936
 N	11.32322	11.757364	2.687684
 Co	12.232819	10.07487	2.601853
+</textarea>
+
+        <div class="row" style="margin-top:2px;">
+          <label style="width:160px;">Atom LJ params (R,E)</label>
+        </div>
+        <textarea id="txtAtomParams" spellcheck="false" style="width: 200%; height: 140px;">H  1.4870 0.000681
+C  1.9080 0.003729
+N  1.7800 0.007372
+O  1.6612 0.009106
+Cl 1.9480 0.011491
+Br 2.2200 0.013876
 </textarea>
 
       </div>
@@ -298,6 +347,239 @@ Co	12.232819	10.07487	2.601853
           setStatus('Warning: running from file:// — browsers block fetch() of PP_AFM_shader.glslf. Please serve via http:// (e.g., python3 -m http.server 8000).');
           console.warn('file:// detected; shader fetch will be blocked by CORS. Serve via http:// instead.');
         }
+
+        function parseXYZText(text) {
+          var rawLines = text.split(/\r?\n/);
+          // Keep original line count but ignore completely empty lines for structure detection
+          var lines = rawLines.filter(function (l) { return l.trim().length > 0; });
+          if (lines.length < 2) throw new Error('XYZ too short');
+          var natoms = parseInt(lines[0], 10);
+          if (!(natoms > 0)) throw new Error('XYZ header natoms is not > 0');
+          var atomStartIndex = 2;
+          var comment = '';
+          if (lines.length < natoms + 2) {
+            if (lines.length >= natoms + 1) {
+              atomStartIndex = 1;
+            } else {
+              throw new Error('XYZ header inconsistent with number of lines');
+            }
+          } else {
+            comment = lines[1];
+          }
+          var atoms = [];
+          for (var i = 0; i < natoms; i++) {
+            var L = lines[atomStartIndex + i];
+            if (!L) throw new Error('Missing atom line ' + (i + 1));
+            var parts = L.trim().split(/\s+/);
+            if (parts.length < 4) throw new Error('Atom line ' + (i + 1) + ' has < 4 columns');
+            var sym = parts[0];
+            var x = parseFloat(parts[1]);
+            var y = parseFloat(parts[2]);
+            var z = parseFloat(parts[3]);
+            if (!isFinite(x) || !isFinite(y) || !isFinite(z)) throw new Error('Atom line ' + (i + 1) + ' has non-numeric xyz');
+            var q = null;
+            for (var k = 4; k < parts.length; k++) {
+              var qt = parseFloat(parts[k].replace(',', '.'));
+              if (isFinite(qt)) { q = qt; break; }
+            }
+            atoms.push({ sym: sym, x: x, y: y, z: z, q: q });
+          }
+          return { natoms: natoms, comment: comment, hasComment: (atomStartIndex === 2), atoms: atoms };
+        }
+
+        function formatXYZ(obj) {
+          var out = [];
+          out.push(String(obj.atoms.length));
+          if (obj.hasComment) out.push(obj.comment || '');
+          for (var i = 0; i < obj.atoms.length; i++) {
+            var a = obj.atoms[i];
+            var line = a.sym + '\t' + a.x.toFixed(6) + '\t' + a.y.toFixed(6) + '\t' + a.z.toFixed(6);
+            if (a.q !== null && isFinite(a.q)) line += '\t' + a.q.toFixed(6);
+            out.push(line);
+          }
+          out.push('');
+          return out.join('\n');
+        }
+
+        function geomApplyAndRender(newXYZText) {
+          var ta = document.getElementById('txtXYZ');
+          ta.value = newXYZText;
+          // If we baked in a geometric shift, ensure we don't double-shift in applyXYZ
+          var chkShiftZ = document.getElementById('chkShiftZ');
+          if (chkShiftZ) chkShiftZ.checked = false;
+          applyXYZ(newXYZText);
+          updateViewFromInputs();
+        }
+
+        function geomShiftZToTop() {
+          var txt = document.getElementById('txtXYZ').value;
+          var xyz = parseXYZText(txt);
+          var maxZ = -1e99;
+          for (var i = 0; i < xyz.atoms.length; i++) if (xyz.atoms[i].z > maxZ) maxZ = xyz.atoms[i].z;
+          for (var i = 0; i < xyz.atoms.length; i++) xyz.atoms[i].z -= maxZ;
+          geomApplyAndRender(formatXYZ(xyz));
+          setStatus('Geometry: shifted so top atom is at z=0');
+        }
+
+        function geomFlattenZ() {
+          var txt = document.getElementById('txtXYZ').value;
+          var xyz = parseXYZText(txt);
+          for (var i = 0; i < xyz.atoms.length; i++) xyz.atoms[i].z = 0.0;
+          geomApplyAndRender(formatXYZ(xyz));
+          setStatus('Geometry: flattened (all z=0)');
+        }
+
+        function jacobiEigenSym3(A) {
+          // A is 3x3 symmetric array [[a00,a01,a02],[a01,a11,a12],[a02,a12,a22]]
+          // Returns { evals:[l0,l1,l2], evecs:[[...],[...],[...]] } where evecs columns are eigenvectors
+          var V = [[1,0,0],[0,1,0],[0,0,1]];
+          function rot(p, q) {
+            if (Math.abs(A[p][q]) < 1e-15) return;
+            var app = A[p][p], aqq = A[q][q], apq = A[p][q];
+            var tau = (aqq - app) / (2.0 * apq);
+            var t = (tau >= 0) ? (1.0 / (tau + Math.sqrt(1 + tau*tau))) : (-1.0 / (-tau + Math.sqrt(1 + tau*tau)));
+            var c = 1.0 / Math.sqrt(1 + t*t);
+            var s = t * c;
+            // Update A
+            A[p][p] = app - t * apq;
+            A[q][q] = aqq + t * apq;
+            A[p][q] = 0.0; A[q][p] = 0.0;
+            for (var r = 0; r < 3; r++) {
+              if (r === p || r === q) continue;
+              var arp = A[r][p];
+              var arq = A[r][q];
+              A[r][p] = arp * c - arq * s;
+              A[p][r] = A[r][p];
+              A[r][q] = arq * c + arp * s;
+              A[q][r] = A[r][q];
+            }
+            // Update V
+            for (var r = 0; r < 3; r++) {
+              var vrp = V[r][p];
+              var vrq = V[r][q];
+              V[r][p] = vrp * c - vrq * s;
+              V[r][q] = vrq * c + vrp * s;
+            }
+          }
+          for (var it = 0; it < 32; it++) {
+            // Find largest off-diagonal
+            var p = 0, q = 1;
+            var m01 = Math.abs(A[0][1]);
+            var m02 = Math.abs(A[0][2]);
+            var m12 = Math.abs(A[1][2]);
+            if (m02 > m01 && m02 > m12) { p = 0; q = 2; }
+            else if (m12 > m01 && m12 > m02) { p = 1; q = 2; }
+            var maxOff = Math.max(m01, m02, m12);
+            if (maxOff < 1e-12) break;
+            rot(p, q);
+          }
+          return { evals: [A[0][0], A[1][1], A[2][2]], evecs: V };
+        }
+
+        function geomAlignPCA() {
+          var txt = document.getElementById('txtXYZ').value;
+          var xyz = parseXYZText(txt);
+          var n = xyz.atoms.length;
+          if (n < 2) throw new Error('Need >= 2 atoms for PCA');
+          // center
+          var mx = 0, my = 0, mz = 0;
+          for (var i = 0; i < n; i++) { mx += xyz.atoms[i].x; my += xyz.atoms[i].y; mz += xyz.atoms[i].z; }
+          mx /= n; my /= n; mz /= n;
+          // covariance
+          var c00=0,c01=0,c02=0,c11=0,c12=0,c22=0;
+          for (var i = 0; i < n; i++) {
+            var dx = xyz.atoms[i].x - mx;
+            var dy = xyz.atoms[i].y - my;
+            var dz = xyz.atoms[i].z - mz;
+            c00 += dx*dx; c01 += dx*dy; c02 += dx*dz;
+            c11 += dy*dy; c12 += dy*dz;
+            c22 += dz*dz;
+          }
+          var A = [[c00,c01,c02],[c01,c11,c12],[c02,c12,c22]];
+          var eig = jacobiEigenSym3(A);
+          // sort indices by eigenvalue ascending (smallest variance -> normal)
+          var idx = [0,1,2];
+          idx.sort(function (i, j) { return eig.evals[i] - eig.evals[j]; });
+          var iz = idx[0], ix = idx[2], iy = idx[1];
+          // Build rotation matrix R whose rows are target basis vectors (x,y,z) in original coords
+          // eig.evecs is V with columns as eigenvectors; take column k as [V[0][k],V[1][k],V[2][k]]
+          function col(k){ return [eig.evecs[0][k], eig.evecs[1][k], eig.evecs[2][k]]; }
+          var ex = col(ix), ey = col(iy), ez = col(iz);
+          // Ensure right-handed: ex x ey should point roughly ez
+          var cx = ex[1]*ey[2]-ex[2]*ey[1];
+          var cy = ex[2]*ey[0]-ex[0]*ey[2];
+          var cz = ex[0]*ey[1]-ex[1]*ey[0];
+          var dot = cx*ez[0] + cy*ez[1] + cz*ez[2];
+          if (dot < 0) { ey[0]*=-1; ey[1]*=-1; ey[2]*=-1; }
+          // Apply rotation: [x',y',z'] = [ex;ey;ez] * (r - mean)
+          for (var i = 0; i < n; i++) {
+            var dx = xyz.atoms[i].x - mx;
+            var dy = xyz.atoms[i].y - my;
+            var dz = xyz.atoms[i].z - mz;
+            var xp = ex[0]*dx + ex[1]*dy + ex[2]*dz;
+            var yp = ey[0]*dx + ey[1]*dy + ey[2]*dz;
+            var zp = ez[0]*dx + ez[1]*dy + ez[2]*dz;
+            xyz.atoms[i].x = xp;
+            xyz.atoms[i].y = yp;
+            xyz.atoms[i].z = zp;
+          }
+          geomApplyAndRender(formatXYZ(xyz));
+          setStatus('Geometry: aligned by PCA (principal axes)');
+        }
+
+        function parseAtomParams(text) {
+          // Format: "Sym R E" per line; allow commas, comments (# ...), blank lines.
+          // Returns a new map {Sym:{R,E}, ...}. Fails loudly on malformed lines.
+          var out = {};
+          var lines = text.split(/\r?\n/);
+          for (var i = 0; i < lines.length; i++) {
+            var line = lines[i];
+            if (!line) continue;
+            var clean = line.replace(/#.*/, '').trim();
+            if (!clean) continue;
+            var parts = clean.split(/\s+/);
+            if (parts.length < 3) throw new Error('Atom params line ' + (i+1) + ' needs 3 columns: Sym R E');
+            var sym = parts[0];
+            var R = parseFloat(parts[1].replace(',', '.'));
+            var E = parseFloat(parts[2].replace(',', '.'));
+            if (!isFinite(R) || !isFinite(E)) throw new Error('Atom params line ' + (i+1) + ' has non-numeric R/E');
+            out[sym] = { R: R, E: E };
+          }
+          return out;
+        }
+
+        function updateElementLJFromTextarea() {
+          var ta = document.getElementById('txtAtomParams');
+          if (!ta) return;
+          var parsed = parseAtomParams(ta.value);
+          elementLJ = parsed;
+          if (uniforms && uniforms.uNumAtoms && uniforms.uNumAtoms.value > 0) {
+            applyXYZ(document.getElementById('txtXYZ').value);
+            updateViewFromInputs();
+          }
+        }
+
+        // Initialize elementLJ from textarea if present
+        try {
+          updateElementLJFromTextarea();
+        } catch (e) {
+          setStatus('Error parsing Atom LJ params: ' + e);
+        }
+
+        // Auto-update element LJ parameters
+        var txtAtomParams = document.getElementById('txtAtomParams');
+        if (txtAtomParams) {
+          txtAtomParams.addEventListener('input', function () {
+            if (!autoUpdate) return;
+            try {
+              updateElementLJFromTextarea();
+              setStatus('Updated Atom LJ params');
+            } catch (e) {
+              setStatus('Error parsing Atom LJ params: ' + e);
+            }
+          });
+        }
+
         var container = document.getElementById('container');
         scene = new THREE.Scene();
         camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 10);
@@ -377,6 +659,131 @@ Co	12.232819	10.07487	2.601853
           updateViewFromInputs();
         });
 
+        var btnGeomShiftZ = document.getElementById('btnGeomShiftZ');
+        if (btnGeomShiftZ) {
+          btnGeomShiftZ.addEventListener('click', function () {
+            try { geomShiftZToTop(); } catch (e) { setStatus('Geometry Shift Z error: ' + e); throw e; }
+          });
+        }
+        var btnGeomFlattenZ = document.getElementById('btnGeomFlattenZ');
+        if (btnGeomFlattenZ) {
+          btnGeomFlattenZ.addEventListener('click', function () {
+            try { geomFlattenZ(); } catch (e) { setStatus('Geometry Flatten error: ' + e); throw e; }
+          });
+        }
+        var btnGeomPCA = document.getElementById('btnGeomPCA');
+        if (btnGeomPCA) {
+          btnGeomPCA.addEventListener('click', function () {
+            try { geomAlignPCA(); } catch (e) { setStatus('Geometry PCA error: ' + e); throw e; }
+          });
+        }
+
+        function parseXYZLinksFromDirectoryListing(htmlText) {
+          // Works with simple directory listings (e.g. python -m http.server).
+          // We intentionally fail loudly if no listing is present.
+          var re = /href\s*=\s*"([^"]+\.xyz)"/gi;
+          var out = [];
+          var m;
+          while ((m = re.exec(htmlText)) !== null) {
+            var href = m[1];
+            var fname = href.split('/').pop().split('?')[0].split('#')[0];
+            if (!fname) continue;
+            if (out.indexOf(fname) < 0) out.push(fname);
+          }
+          out.sort(function (a, b) { return a.localeCompare(b); });
+          return out;
+        }
+
+        function populateMoleculeSelect() {
+          var sel = document.getElementById('selMolecule');
+          if (!sel) return;
+          var baseA = 'molecules/';
+          var baseB = '../common_resources/molecules/';
+          function tryList(base1, base2) {
+            return fetch(base1).then(function (r) {
+              if (!r.ok) throw new Error('HTTP ' + r.status + ' for ' + base1);
+              return r.text();
+            }).then(function (htmlText) {
+              return { base: base1, files: parseXYZLinksFromDirectoryListing(htmlText) };
+            }).catch(function () {
+              return fetch(base2).then(function (r2) {
+                if (!r2.ok) throw new Error('HTTP ' + r2.status + ' for ' + base2);
+                return r2.text();
+              }).then(function (htmlText2) {
+                return { base: base2, files: parseXYZLinksFromDirectoryListing(htmlText2) };
+              });
+            });
+          }
+          tryList(baseA, baseB).then(function (res) {
+            if (!res.files.length) throw new Error('No .xyz links found in directory listing: ' + res.base);
+            sel.dataset.base = res.base;
+            // Keep the first placeholder option, drop everything else
+            while (sel.options.length > 1) sel.remove(1);
+            res.files.forEach(function (fname) {
+              var opt = document.createElement('option');
+              opt.value = fname;
+              opt.textContent = fname;
+              sel.appendChild(opt);
+            });
+            setStatus('Found ' + res.files.length + ' example molecules in ' + res.base);
+          }).catch(function (e) {
+            setStatus('Cannot list example molecules (no directory listing?). ' + e);
+          });
+        }
+
+        function loadExampleMolecule(fname) {
+          if (!fname) return;
+          var sel = document.getElementById('selMolecule');
+          var base = (sel && sel.dataset && sel.dataset.base) ? sel.dataset.base : 'molecules/';
+          fetch(base + fname).then(function (r) {
+            if (!r.ok) throw new Error('HTTP ' + r.status + ' for ' + (base + fname));
+            return r.text();
+          }).then(function (txt) {
+            var ta = document.getElementById('txtXYZ');
+            ta.value = txt;
+            applyXYZ(txt);
+            updateViewFromInputs();
+            setStatus('Loaded example: ' + fname);
+          }).catch(function (e) {
+            setStatus('Error loading example ' + fname + ': ' + e);
+          });
+        }
+
+        function saveXYZText() {
+          var ta = document.getElementById('txtXYZ');
+          var txt = (ta && ta.value) ? ta.value : '';
+          if (!txt.trim()) {
+            setStatus('Nothing to save (XYZ textarea is empty)');
+            return;
+          }
+          var sel = document.getElementById('selMolecule');
+          var fname = (sel && sel.value) ? sel.value : 'molecule.xyz';
+          if (!/\.xyz$/i.test(fname)) fname += '.xyz';
+          var blob = new Blob([txt], { type: 'text/plain' });
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement('a');
+          a.href = url;
+          a.download = fname;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(function () { URL.revokeObjectURL(url); }, 0);
+          setStatus('Saved: ' + fname);
+        }
+
+        var selMol = document.getElementById('selMolecule');
+        if (selMol) {
+          selMol.addEventListener('change', function () {
+            if (autoUpdate) loadExampleMolecule(selMol.value);
+          });
+        }
+        var btnSave = document.getElementById('btnSaveXYZ');
+        if (btnSave) {
+          btnSave.addEventListener('click', saveXYZText);
+        }
+
+        populateMoleculeSelect();
+
         function updateViewFromInputs() {
           // Re-read numeric inputs and sanitize physical parameters on the JS side
           var z        = parseFloat(document.getElementById('inpZ').value);
@@ -390,7 +797,8 @@ Co	12.232819	10.07487	2.601853
           var relaxIt  = parseInt  (document.getElementById('inpRelaxIters').value, 10);
           var dt       = parseFloat(document.getElementById('inpDt').value);
           var algo     = parseInt  (document.getElementById('inpAlgo').value, 10);
-          var renderM  = parseInt  (document.getElementById('inpRender').value, 10);
+          var selRender = document.getElementById('selRenderMode');
+          var renderM  = parseInt((selRender && selRender.value) ? selRender.value : '0', 10);
           var f2conv   = parseFloat(document.getElementById('inpF2Conv').value);
           var oscSteps = parseInt  (document.getElementById('inpOscSteps').value, 10);
           var dz       = parseFloat(document.getElementById('inpDz').value);
@@ -527,7 +935,7 @@ Co	12.232819	10.07487	2.601853
         document.getElementById('btnUpdateView').addEventListener('click', updateViewFromInputs);
 
         // Auto-update when basic view parameter inputs change (if enabled)
-        ['inpZ', 'inpScale', 'inpCX', 'inpCY', 'inpContrast', 'inpKLat', 'inpKRad', 'inpRTip', 'inpRelaxIters', 'inpDt', 'inpAlgo', 'inpRender', 'inpF2Conv', 'inpOscSteps', 'inpDz', 'inpOscAmp', 'inpPreRelax', 'inpRelaxSub']
+        ['inpZ', 'inpScale', 'inpCX', 'inpCY', 'inpContrast', 'selRenderMode', 'inpKLat', 'inpKRad', 'inpRTip', 'inpRelaxIters', 'inpDt', 'inpAlgo', 'inpF2Conv', 'inpOscSteps', 'inpDz', 'inpOscAmp', 'inpPreRelax', 'inpRelaxSub']
           .forEach(function (id) {
             var el = document.getElementById(id);
             if (!el) return;
@@ -552,7 +960,7 @@ Co	12.232819	10.07487	2.601853
           });
         }
 
-        ['inpZ', 'inpScale', 'inpCX', 'inpCY', 'inpContrast', 'inpKLat', 'inpKRad', 'inpRTip', 'inpDt', 'inpAlgo', 'inpRender', 'inpF2Conv', 'inpOscSteps', 'inpDz', 'inpOscAmp', 'inpPreRelax', 'inpRelaxSub'].forEach(attachWheelIncrement);
+        ['inpZ', 'inpScale', 'inpCX', 'inpCY', 'inpContrast', 'inpKLat', 'inpKRad', 'inpRTip', 'inpDt', 'inpAlgo', 'inpF2Conv', 'inpOscSteps', 'inpDz', 'inpOscAmp', 'inpPreRelax', 'inpRelaxSub'].forEach(attachWheelIncrement);
 
         // Auto-update REQK when probe parameters change
         ['inpProbeQ', 'inpProbeR', 'inpProbeE'].forEach(function (id) {
